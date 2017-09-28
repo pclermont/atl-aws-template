@@ -50,8 +50,7 @@
           "default": "Advanced (Optional)"
         },
         "Parameters": [
-          "CatalinaOpts",
-          "StartCollectd"
+          "CatalinaOpts"
         ]
       }],
       "ParameterLabels": {
@@ -153,6 +152,10 @@
       "Description": "Instance type for the cluster nodes."
     },
     "CatalinaOpts": {
+      "Type": "String",
+      "Default": ""
+    },
+    "Version": {
       "Type": "String",
       "Default": ""
     },
@@ -262,16 +265,6 @@
       "MaxLength": "32",
       "Default": ""
     },
-    "StartCollectd": {
-      "Description": "Should the collectd service be started",
-      "Type": "String",
-      "Default": "true",
-      "AllowedValues": [
-        "true",
-        "false"
-      ],
-      "ConstraintDescription": "Must be 'true' or 'false'."
-    },
     "ExternalSubnets": {
       "Description": "Subnets (two or more) where your user-facing load balancer will be deployed. MUST be within the selected VPC.",
       "Type": "List<AWS::EC2::Subnet::Id>",
@@ -294,13 +287,6 @@
         "Ref": "DBStorageType"
       },
         "Provisioned IOPS"
-      ]
-    },
-    "DoCollectd": {
-      "Fn::Equals": [{
-        "Ref": "StartCollectd"
-      },
-        "true"
       ]
     },
     "DoSetDBMasterUserPassword": {
@@ -422,79 +408,8 @@
       }
     },
     "AWSRegionArch2AMI": {
-      "us-east-1": {
-        "HVM64": "ami-bb5642ac",
-        "HVMG2": "NOT_SUPPORTED"
-      },
-      "ap-south-1": {
-        "HVM64": "ami-67c6b108",
-        "HVMG2": "NOT_SUPPORTED"
-      },
-      "eu-west-2": {
-        "HVM64": "ami-eeede78a",
-        "HVMG2": "NOT_SUPPORTED"
-      },
-      "eu-west-1": {
-        "HVM64": "ami-afcaeadc",
-        "HVMG2": "NOT_SUPPORTED"
-      },
-      "ap-northeast-2": {
-        "HVM64": "ami-15a0767b",
-        "HVMG2": "NOT_SUPPORTED"
-      },
-      "ap-northeast-1": {
-        "HVM64": "ami-da107bbd",
-        "HVMG2": "NOT_SUPPORTED"
-      },
-      "sa-east-1": {
-        "HVM64": "ami-5a71e936",
-        "HVMG2": "NOT_SUPPORTED"
-      },
       "ca-central-1": {
-        "HVM64": "ami-b0a619d4",
-        "HVMG2": "NOT_SUPPORTED"
-      },
-      "ap-southeast-1": {
-        "HVM64": "ami-b7ae00d4",
-        "HVMG2": "NOT_SUPPORTED"
-      },
-      "ap-southeast-2": {
-        "HVM64": "ami-5bc2f938",
-        "HVMG2": "NOT_SUPPORTED"
-      },
-      "eu-central-1": {
-        "HVM64": "ami-982aeaf7",
-        "HVMG2": "NOT_SUPPORTED"
-      },
-      "us-east-2": {
-        "HVM64": "ami-1ccc9679",
-        "HVMG2": "NOT_SUPPORTED"
-      },
-      "us-west-1": {
-        "HVM64": "ami-f0267790",
-        "HVMG2": "NOT_SUPPORTED"
-      },
-      "us-west-2": {
-        "HVM64": "ami-560fbb36",
-        "HVMG2": "NOT_SUPPORTED"
-      }
-    },
-    "JIRAProduct2NameAndVersion": {
-      "Software": {
-        "name": "jira-software",
-        "shortdisplayname": "\"JIRA SW\"",
-        "fulldisplayname": "\"Atlassian JIRA Software\""
-      },
-      "ServiceDesk": {
-        "name": "servicedesk",
-        "shortdisplayname": "\"JIRA SD\"",
-        "fulldisplayname": "\"Atlassian JIRA Service Desk\""
-      },
-      "Core": {
-        "name": "jira-core",
-        "shortdisplayname": "\"JIRA Core\"",
-        "fulldisplayname": "\"Atlassian JIRA Core\""
-
+        "HVM64": "ami-b0a619d4"
       }
     }
   },
@@ -580,8 +495,7 @@
             },
             "packages" : {
               "yum" : {
-                "nginx" : [],
-
+                "nginx" : []
               }
             }
           },
@@ -604,6 +518,10 @@
                           "DB",
                           "Endpoint.Address"
                         ]
+                      },
+                      "\n",
+                      "ATL_JIRA_VERSION=", {
+                        "Ref": "ATLVersion"
                       },
                       "\n",
                       "ATL_DB_PORT=", {
@@ -634,34 +552,11 @@
                       "\n",
                       "ATL_ENABLED_PRODUCTS=Jira\n",
                       "ATL_ENABLED_SHARED_HOMES=\n",
-                      "ATL_JIRA_NAME=",
-
-                      {
-                        "Fn::FindInMap": [
-                          "JIRAProduct2NameAndVersion", {
-                            "Ref": "JiraProduct"
-                          },
-                          "name"
-                        ]
-                      },
+                      "ATL_JIRA_NAME=jira-software",
                       "\n",
-                      "ATL_JIRA_SHORT_DISPLAY_NAME=", {
-                        "Fn::FindInMap": [
-                          "JIRAProduct2NameAndVersion", {
-                            "Ref": "JiraProduct"
-                          },
-                          "shortdisplayname"
-                        ]
-                      },
+                      "ATL_JIRA_SHORT_DISPLAY_NAME=\"JIRA SW\"",
                       "\n",
-                      "ATL_JIRA_FULL_DISPLAY_NAME=", {
-                        "Fn::FindInMap": [
-                          "JIRAProduct2NameAndVersion", {
-                            "Ref": "JiraProduct"
-                          },
-                          "fulldisplayname"
-                        ]
-                      },
+                      "ATL_JIRA_FULL_DISPLAY_NAME=\"Atlassian JIRA Software\"",
                       "\n",
                       "ATL_RELEASE_S3_BUCKET=atlassian-software\n",
                       "ATL_RELEASE_S3_PATH=releases\n",
@@ -740,7 +635,7 @@
                 "ignoreErrors": "false"
               },
               "010_make_mount_point": {
-                "command": "mkdir -p /var/atlassian",
+                "command": "mkdir -p /media/atl",
                 "ignoreErrors": "false"
               },
               "020_add_nfs_mount": {
@@ -751,7 +646,7 @@
                         "Ref": "NFSServer"
                       }
                     ,
-                      ":/nfs/ /var/atlassian nfs4 noatime,intr,rsize=32768,wsize=32768 0 0 >>/etc/fstab"
+                      ":/nfs/ /media/atl nfs4 noatime,intr,rsize=32768,wsize=32768 0 0 >>/etc/fstab"
                     ]
                   ]
                 },
@@ -762,7 +657,7 @@
                 "ignoreErrors": "false"
               },
               "040_make_shared_home_dir": {
-                "command": "mkdir -p /var/atlassian/jira/shared",
+                "command": "mkdir -p /media/atl/jira/shared",
                 "ignoreErrors": "false"
               },
               "050_remove_java_openjdk": {
@@ -782,7 +677,7 @@
                 "ignoreErrors": "false"
               },
               "080_fetch_update_hostname_script": {
-                "command": "curl https://bitbucket.org/atlassian/atlassian-aws-deployment/raw/master/scripts/bin/atl-update-host-name.sh -o /tmp/atl-update-host-name.sh",
+                "command": "curl https://bitbucket.org/atlassian/atlassian-aws-deployment/raw/master/ami/scripts/bin/atl-update-host-name.sh -o /tmp/atl-update-host-name.sh",
                 "ignoreErrors": "false"
               },
               "081_move_hostname_script": {

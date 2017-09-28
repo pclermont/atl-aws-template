@@ -1,0 +1,55 @@
+#!/bin/bash
+
+set -e
+
+ATL_FACTORY_CONFIG=/etc/sysconfig/atl
+ATL_USER_CONFIG=/etc/atl
+
+[[ -r "${ATL_FACTORY_CONFIG}" ]] && . "${ATL_FACTORY_CONFIG}"
+[[ -r "${ATL_USER_CONFIG}" ]] && . "${ATL_USER_CONFIG}"
+
+if [[ "x${ATL_CONFLUENCE_VERSION}" == "xlatest" ]]; then
+    ATL_CONFLUENCE_INSTALLER="atlassian-${ATL_CONFLUENCE_NAME}-linux-x64.bin"
+else
+    ATL_CONFLUENCE_INSTALLER="atlassian-${ATL_CONFLUENCE_NAME}-${ATL_CONFLUENCE_VERSION}-linux-x64.bin"
+fi
+ATL_CONFLUENCE_INSTALLER_S3_PATH="${ATL_RELEASE_S3_PATH}/${ATL_CONFLUENCE_INSTALLER}"
+ATL_CONFLUENCE_INSTALLER_DOWNLOAD_URL="${ATL_CONFLUENCE_INSTALLER_DOWNLOAD_URL:-"https://s3.amazonaws.com/${ATL_RELEASE_S3_BUCKET}/${ATL_CONFLUENCE_INSTALLER_S3_PATH}"}"
+
+ATL_LOG=${ATL_LOG:?"The Atlassian log location must be supplied in ${ATL_FACTORY_CONFIG}"}
+ATL_APP_DATA_MOUNT=${ATL_APP_DATA_MOUNT:?"The application data mount name must be supplied in ${ATL_FACTORY_CONFIG}"}
+ATL_INSTANCE_STORE_MOUNT=${ATL_INSTANCE_STORE_MOUNT:?"The instance store mount must be supplied in ${ATL_FACTORY_CONFIG}"}
+ATL_HOST_NAME=$(atl_hostName)
+ATL_HOST_NAME=$(atl_toLowerCase ${ATL_HOST_NAME})
+
+ATL_CONFLUENCE_NAME=${ATL_CONFLUENCE_NAME:?"The CONFLUENCE name must be supplied in ${ATL_FACTORY_CONFIG}"}
+ATL_CONFLUENCE_SHORT_DISPLAY_NAME=${ATL_CONFLUENCE_SHORT_DISPLAY_NAME:?"The ${ATL_CONFLUENCE_NAME} short display name must be supplied in ${ATL_FACTORY_CONFIG}"}
+ATL_CONFLUENCE_FULL_DISPLAY_NAME=${ATL_CONFLUENCE_FULL_DISPLAY_NAME:?"The ${ATL_CONFLUENCE_SHORT_DISPLAY_NAME} short display name must be supplied in ${ATL_FACTORY_CONFIG}"}
+ATL_CONFLUENCE_VERSION=${ATL_CONFLUENCE_VERSION:?"The ${ATL_CONFLUENCE_SHORT_DISPLAY_NAME} version must be supplied in ${ATL_FACTORY_CONFIG}"}
+ATL_CONFLUENCE_USER=${ATL_CONFLUENCE_USER:?"The ${ATL_CONFLUENCE_SHORT_DISPLAY_NAME} user account must be supplied in ${ATL_FACTORY_CONFIG}"}
+ATL_CONFLUENCE_DB_NAME=${ATL_CONFLUENCE_DB_NAME:?"The ${ATL_CONFLUENCE_SHORT_DISPLAY_NAME} db name must be supplied in ${ATL_FACTORY_CONFIG}"}
+ATL_CONFLUENCE_DB_USER=${ATL_CONFLUENCE_DB_USER:?"The ${ATL_CONFLUENCE_SHORT_DISPLAY_NAME} db user must be supplied in ${ATL_FACTORY_CONFIG}"}
+ATL_CONFLUENCE_INSTALL_DIR=${ATL_CONFLUENCE_INSTALL_DIR:?"The ${ATL_CONFLUENCE_SHORT_DISPLAY_NAME} install dir must be supplied in ${ATL_FACTORY_CONFIG}"}
+ATL_CONFLUENCE_HOME=${ATL_CONFLUENCE_HOME:?"The ${ATL_CONFLUENCE_SHORT_DISPLAY_NAME} home dir must be supplied in ${ATL_FACTORY_CONFIG}"}
+
+ATL_CONFLUENCE_INSTALLER_DOWNLOAD_URL=${ATL_CONFLUENCE_INSTALLER_DOWNLOAD_URL:?"The ${ATL_CONFLUENCE_SHORT_DISPLAY_NAME} installer download URL must be supplied in ${ATL_FACTORY_CONFIG}"}
+if [[ "xtrue" == "x$(atl_toLowerCase ${ATL_NGINX_ENABLED})" ]]; then
+    ATL_CONFLUENCE_NGINX_PATH=${ATL_CONFLUENCE_NGINX_PATH:?"The ${ATL_CONFLUENCE_SHORT_DISPLAY_NAME} home dir must be supplied in ${ATL_FACTORY_CONFIG}"}
+fi
+ATL_CONFLUENCE_SHARED_HOME="${ATL_CONFLUENCE_HOME}/shared-home"
+ATL_CONFLUENCE_SERVICE_NAME="confluence"
+
+function exportCatalinaOpts() {
+    atl_log "=== BEGIN: service exportCatalinaOpts ==="
+    cat <<EOT | su "${ATL_CONFLUENCE_USER}" -c "tee -a \"/home/${ATL_CONFLUENCE_USER}/.bash_profile\"" > /dev/null 2>&1
+
+if [ -f ~/.bashrc ]; then
+    . ~/.bashrc
+fi
+export CATALINA_OPTS="${ATL_CATALINA_OPTS}"
+
+EOT
+    chmod 644 "/home/${ATL_CONFLUENCE_USER}/.bash_profile"
+    chown ${ATL_CONFLUENCE_USER}:${ATL_CONFLUENCE_USER} /home/${ATL_CONFLUENCE_USER}/.bash_profile
+    atl_log "=== END: service exportCatalinaOpts ==="
+}

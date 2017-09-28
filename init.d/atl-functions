@@ -1,0 +1,353 @@
+# Atlassian functions used by init.d services
+
+_ATL_TEMP_DIR=$(mktemp -d)
+chmod 1777 "${_ATL_TEMP_DIR}"
+function atl_tempDir {
+    echo "${_ATL_TEMP_DIR}"
+}
+
+trap "rm -rf $_ATL_TEMP_DIR" EXIT
+
+function atl_log {
+    echo "$1"
+    /usr/bin/logger -t atl "$1"
+    echo "`date \"+%Y-%m-%d %H:%M:%S\"` $1" >> "${ATL_LOG}"
+}
+
+function atl_fatal_error {
+    local ERROR_MESSAGE="$1"
+    local ERROR_HTML="<div class=\"aui-message aui-message-error\"><p class=\"title\"><strong>Installation Error</strong></p><p>${ERROR_MESSAGE}</p></div>"
+
+    atl_log "Replacing index with error page."
+    cp -f /usr/share/nginx/html/error.html /usr/share/nginx/html/index.html >> "${ATL_LOG}" 2>&1
+
+    atl_log "Adding error message to error page."
+    sed -i "s|<!--ERROR MESSAGE-->|${ERROR_HTML}|" /usr/share/nginx/html/index.html >> "${ATL_LOG}" 2>&1
+
+    exit 1
+}
+
+function atl_error {
+   local LINENO="$1"
+   local MSG="$2"
+   local CODE="${3:-1}"
+   if [[ -n "$MSG" ]] ; then
+       atl_log "Error on line ${LINENO}: ${MSG}; exiting code ${CODE}"
+   else
+       atl_log "Error on line ${LINENO}; exiting code ${CODE}"
+   fi
+
+   exit "${CODE}"
+}
+
+trap "atl_error ${LINENO}" ERR
+
+function atl_enabled_products {
+    for product in $(echo "${ATL_ENABLED_PRODUCTS}" | tr ',' '\n'); do
+        echo ${product} | tr '[A-Z]' '[a-z]'
+    done
+}
+
+function atl_enabled_shared_homes {
+    for shared_home in $(echo "${ATL_ENABLED_SHARED_HOMES}" | tr ',' '\n'); do
+        echo ${shared_home} | tr '[A-Z]' '[a-z]'
+    done
+}
+
+function atl_toLowerCase {
+    echo "$(tr '[:upper:]' '[:lower:]' <<< $1)"
+}
+
+function atl_toUpperCase {
+    echo "$(tr '[:lower:]' '[:upper:]' <<< $1)"
+}
+
+function atl_toSentenceCase {
+    echo "$(tr '[:lower:]' '[:upper:]' <<< ${1:0:1})${1:1}"
+}
+
+function atl_freeSpace {
+    echo $(df -P $1 | tail -1 | awk '{print $4}')
+}
+
+
+function atl_roleExists {
+    local ROLE=$1
+    local DB_NAME=${2:-"postgres"}
+    local DB_HOST=${3:-"localhost"}
+    local DB_PORT=${4:-"5432"}
+
+    local ROLE_EXISTS="$(su postgres -c "psql -w -h ${DB_HOST} -p ${DB_PORT} -d ${DB_NAME} -U postgres -t --command \"SELECT COUNT(*) FROM pg_roles WHERE rolname='${ROLE}'\"")"
+    [[ ${ROLE_EXISTS} -ge 1 ]]
+}
+
+function atl_configureDbPassword {
+    local PASSWORD=$1
+    local DB_NAME=$2
+    local DB_HOST=${3:-"localhost"}
+    local DB_PORT=${4:-"5432"}
+
+    atl_log "Configuring DB password for ${DB_HOST}"
+    (su postgres -c "echo '${DB_HOST}:${DB_PORT}:${DB_NAME}:postgres:${PASSWORD}' >> ~/.pgpass") >> "${ATL_LOG}" 2>&1
+    (su postgres -c "chmod 600 ~/.pgpass") >> "${ATL_LOG}" 2>&1
+    atl_log "Done configuring DB password for ${DB_HOST}"
+}
+
+function atl_dbExists {
+    local DB_NAME=${1:-"postgres"}
+    local DB_HOST=${2:-"localhost"}
+    local DB_PORT=${3:-"5432"}
+
+    local DB_EXISTS="$(su postgres -c "psql -w -h ${DB_HOST} -p ${DB_PORT} -U postgres -t --command \"SELECT COUNT(*) FROM pg_database WHERE datname='${DB_NAME}'\"")"
+    [[ ${DB_EXISTS} -ge 1 ]]
+}
+
+function atl_createDb {
+    local PRODUCT_SHORT_DISPLAY_NAME=$1
+    local DB_NAME=$2
+    local DB_USER=$3
+
+    atl_log "Creating ${PRODUCT_SHORT_DISPLAY_NAME} DB ${DB_NAME}"
+    (su postgres -c "psql -w --command \"CREATE DATABASE ${DB_NAME} WITH OWNER=${DB_USER} ENCODING='UTF8' CONNECTION LIMIT=-1;\"") >> "${ATL_LOG}" 2>&1
+    atl_log "Done creating ${PRODUCT_SHORT_DISPLAY_NAME} DB ${DB_NAME}"
+}
+
+function atl_createRemoteDb {
+    local PRODUCT_SHORT_DISPLAY_NAME=$1
+    local DB_NAME=$2
+    local DB_USER=$3
+    local DB_HOST=${4:-"localhost"}
+    local DB_PORT=${5:-"5432"}
+    local DB_COLLATE=${6:-"en_US"}
+    local DB_CTYPE=${7:-"en_US"}
+    local DB_TEMPLATE=${8:-"template1"}
+
+    atl_log "Creating ${PRODUCT_SHORT_DISPLAY_NAME} DB ${DB_NAME}"
+    su postgres -c "psql -w -h ${DB_HOST} -p ${DB_PORT} -U postgres --command \"CREATE DATABASE ${DB_NAME} WITH OWNER=${DB_USER} ENCODING='UTF8' LC_COLLATE '${DB_COLLATE}' LC_CTYPE '${DB_CTYPE}' TEMPLATE ${DB_TEMPLATE} CONNECTION LIMIT=-1;\"" >> "${ATL_LOG}" 2>&1
+    atl_log "Done creating ${PRODUCT_SHORT_DISPLAY_NAME} DB ${DB_NAME}"
+}
+
+function atl_createRole {
+    local PRODUCT_SHORT_DISPLAY_NAME=$1
+    local DB_USER=$2
+    local DB_PASSWORD=$3
+    local DB_HOST=${4:-"localhost"}
+    local DB_PORT=${5:-"5432"}
+
+    atl_log "Creating ${PRODUCT_SHORT_DISPLAY_NAME} DB role ${DB_USER}"
+    (su postgres -c "psql -w -h ${DB_HOST} -p ${DB_PORT} -U postgres --command \"CREATE ROLE ${DB_USER} LOGIN PASSWORD '${DB_PASSWORD}' VALID UNTIL 'infinity';\"" || :) >> "${ATL_LOG}" 2>&1
+    (su postgres -c "psql -w -h ${DB_HOST} -p ${DB_PORT} -U postgres --command \"GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ${DB_USER};\"" || :) >> "${ATL_LOG}" 2>&1
+    (su postgres -c "psql -w -h ${DB_HOST} -p ${DB_PORT} -U postgres --command \"GRANT ${DB_USER} TO postgres;\"" || :) >> "${ATL_LOG}" 2>&1
+    atl_log "Done creating ${PRODUCT_SHORT_DISPLAY_NAME} DB role ${DB_USER}"
+}
+
+function atl_addNginxProductMapping {
+    local PROD_PATH=$1
+    local PROD_PORT=$2
+
+    sed -i "/# ATL products entries start/a\\
+    location ${PROD_PATH} {\\
+      proxy_pass          http://127.0.0.1:${PROD_PORT}/;\\
+      proxy_set_header    X-Forwarded-Host \$host;\\
+      proxy_set_header    X-Forwarded-Server \$host;\\
+      proxy_set_header    X-Forwarded-For \$proxy_add_x_forwarded_for;\\
+      proxy_set_header    X-Real-IP \$remote_addr;\\
+      proxy_redirect      off;\\
+    }\\
+
+" /etc/nginx/nginx.conf
+}
+
+_ATL_HOST_NAME=
+_ATL_PUBLIC_HOST_NAME=
+_ATL_PUBLIC_IPV4=
+_ATL_PRIVATE_IPV4=
+
+function atl_setNginxHostName {
+    atl_resolveHostNamesAndIps > /dev/null 2>&1
+
+    local HOST_NAME=$1
+    local HOSTS=(${HOST_NAME} ${_ATL_PUBLIC_HOST_NAME} ${_ATL_PUBLIC_IPV4} ${_ATL_PRIVATE_IPV4} localhost 127.0.0.1)
+    # Remove duplicates in the ${HOSTS[@]} array, preserving order.
+    local UNIQUE_HOSTS=$(echo "${HOSTS[@]}" | tr ' ' '\n' | awk '!a[$0]++' | tr '\n' ' ')
+
+    atl_log "Updating NGINX server_name to ${UNIQUE_HOSTS}"
+
+    sed -i -e "/# ATL server host start/,/# ATL server host end/c\\
+    # ATL server host start\\
+    server_name ${UNIQUE_HOSTS};\\
+    # ATL server host end\\
+
+" /etc/nginx/nginx.conf
+}
+
+function atl_configureTomcatConnector {
+    local HOST_NAME="${1}"
+    local DEFAULT_CONNECTOR_PORT="${2}"
+    local REDIRECT_CONNECTOR_PORT="${3}"
+    local USER="${4}"
+    local SERVER_XML_PATH="${5}"
+    local SERVER_XML="${5}/server.xml"
+    local WEB_XML_PATH="${6}"
+    local WEB_XML="${6}/web.xml"
+    local FORCE="${7:-"false"}"
+
+    local secure=false
+    local scheme=http
+    local proxyPort=80
+    if [[ "xtrue" == "x$(atl_toLowerCase ${ATL_SSL_SELF_CERT_ENABLED})" || "xtrue" == "x$(atl_toLowerCase ${ATL_SSL_PROXY})" ]]; then
+        secure=true
+        scheme=https
+        proxyPort=443
+    fi
+
+    local CONNECTOR_MATCHER="@port='${DEFAULT_CONNECTOR_PORT}'"
+    if [ "x${FORCE}" = "xtrue" ]; then
+        atl_log "Force updating server.xml"
+    else        
+        CONNECTOR_MATCHER+=" and not(@proxyName)"
+    fi
+
+    cat <<EOT | su "${USER}" -c "tee \"$(atl_tempDir)/server.xslt\"" >> "${ATL_LOG}" 2>&1
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+    <xsl:output omit-xml-declaration="yes" indent="yes"/>
+
+    <xsl:template match="@*|node()">
+        <xsl:copy>
+            <xsl:apply-templates select="@*|node()"/>
+        </xsl:copy>
+    </xsl:template>
+
+    <xsl:template match="/Server/Service/Connector[${CONNECTOR_MATCHER}]">
+        <xsl:copy>
+            <xsl:apply-templates select="@*|node()"/>
+            <xsl:attribute name="secure">${secure}</xsl:attribute>
+            <xsl:attribute name="scheme">${scheme}</xsl:attribute>
+            <xsl:attribute name="proxyName">${HOST_NAME}</xsl:attribute>
+            <xsl:attribute name="proxyPort">${proxyPort}</xsl:attribute>
+        </xsl:copy>
+    </xsl:template>
+</xsl:stylesheet>
+EOT
+    local SERVER_TMP="${SERVER_XML_PATH}/server.xml.tmp"
+    set -C
+    if  >"${SERVER_TMP}"; then
+        set +C
+        chown "${USER}:${USER}" "${SERVER_TMP}" >> "${ATL_LOG}" 2>&1
+        if su "${USER}" -c "xsltproc -o \"${SERVER_TMP}\" \"$(atl_tempDir)/server.xslt\" \"${SERVER_XML}\""; then
+            if $secure ; then
+                atl_addRedirectConnectorServerXml "${USER}" "${SERVER_TMP}"
+            fi
+
+            if mv -f "${SERVER_TMP}" "${SERVER_XML}" >> "${ATL_LOG}" 2>&1; then
+                atl_log "Updated server.xml for host name change to ${HOST_NAME}, secure=${secure}, scheme=${scheme}, proxyPort=${proxyPort}"
+            else
+                atl_log "Updating ${SERVER_XML} failed"
+            fi
+        else
+            atl_log "Updating server.xml failed. Skipping."
+        fi
+    else
+        set +C
+    fi
+
+    if $secure ; then        
+        atl_transformWebXml "${USER}" "${WEB_XML}"
+    fi
+}
+
+function atl_addRedirectConnectorServerXml {
+    local USER="${1}"
+    local SERVER_XML="${2}"
+    cat <<EOT | su "${USER}" -c "tee \"$(atl_tempDir)/server.xslt\"" >> "${ATL_LOG}" 2>&1
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+    <xsl:output omit-xml-declaration="yes" indent="yes"/>
+
+    <xsl:template match="@*|node()">
+        <xsl:copy>
+            <xsl:apply-templates select="@*|node()"/>
+        </xsl:copy>
+    </xsl:template>
+
+   
+    <xsl:template match="/Server/Service[not(Connector[@port='${REDIRECT_CONNECTOR_PORT}'])]">
+         <xsl:copy>
+            <xsl:apply-templates select="@*|node()"/>
+            
+            <Connector port="${REDIRECT_CONNECTOR_PORT}" protocol="HTTP/1.1"
+                   maxHttpHeaderSize="65536"
+                   URIEncoding="UTF-8"
+                   connectionTimeout="20000"
+                   useBodyEncodingForURI="true"
+                   compression="on"
+                   compressableMimeType="text/html,text/xml,text/plain,text/css,application/json,application/javascript,application/x-javascript" />
+        </xsl:copy>
+    </xsl:template>
+</xsl:stylesheet>
+EOT
+    su "${USER}" -c "xsltproc -o \"${SERVER_XML}\" \"$(atl_tempDir)/server.xslt\" \"${SERVER_XML}\"" >> "${ATL_LOG}" 2>&1 || true
+}
+
+function atl_transformWebXml {
+    local USER="${1}"
+    local WEB_XML="${2}"
+
+    atl_log "Updating web.xml to redirect HTTP to HTTPS."            
+
+    cat <<EOT | su "${USER}" -c "tee \"$(atl_tempDir)/web.xslt\"" >> "${ATL_LOG}" 2>&1
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+    <xsl:output omit-xml-declaration="yes" indent="yes"/>
+
+    <xsl:template match="@*|node()">
+        <xsl:copy>
+            <xsl:apply-templates select="@*|node()"/>
+        </xsl:copy>
+    </xsl:template>
+
+   
+     <xsl:template match="/*[name() = 'web-app' and not(./*[name() = 'security-constraint'])]">
+         <xsl:copy>
+            <xsl:apply-templates select="@*"/>
+            <security-constraint>
+                <web-resource-collection>
+                    <web-resource-name>HTTPSOrHTTP</web-resource-name>
+                    <url-pattern>/status*</url-pattern>
+                </web-resource-collection>
+                <user-data-constraint>
+                    <transport-guarantee>NONE</transport-guarantee>
+                </user-data-constraint>
+            </security-constraint>
+            <security-constraint>
+                <web-resource-collection>
+                    <web-resource-name>HTTPSOnly</web-resource-name>
+                    <url-pattern>/*</url-pattern>
+                </web-resource-collection>
+                <user-data-constraint>
+                    <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+                </user-data-constraint>
+            </security-constraint>
+            <xsl:apply-templates select="node()"/>
+        </xsl:copy>
+    </xsl:template>
+</xsl:stylesheet>
+EOT
+    su "${USER}" -c "xsltproc -o \"${WEB_XML}\" \"$(atl_tempDir)/web.xslt\" \"${WEB_XML}\"" >> "${ATL_LOG}" 2>&1 || true
+}
+
+function atl_hostName {
+    atl_resolveHostNamesAndIps > /dev/null 2>&1
+
+    if [[ -z "${_ATL_HOST_NAME}" ]]; then
+        _ATL_HOST_NAME=${ATL_HOST_NAME:-${_ATL_PUBLIC_HOST_NAME}}
+        _ATL_HOST_NAME=${_ATL_HOST_NAME:-${_ATL_PUBLIC_IPV4}}
+        _ATL_HOST_NAME=${_ATL_HOST_NAME:-${_ATL_PRIVATE_IPV4}}
+        _ATL_HOST_NAME=${_ATL_HOST_NAME:-localhost}
+    fi
+    echo ${_ATL_HOST_NAME}
+}
+
+function atl_resolveHostNamesAndIps {
+    _ATL_PUBLIC_HOST_NAME=$(curl -f --silent http://169.254.169.254/latest/meta-data/public-hostname || echo "")
+    _ATL_PUBLIC_IPV4=$(curl -f --silent http://169.254.169.254/latest/meta-data/public-ipv4 || echo "")
+    _ATL_PRIVATE_IPV4=$(curl -f --silent http://169.254.169.254/latest/meta-data/local-ipv4 || echo "")
+}
