@@ -77,7 +77,7 @@ function atl_roleExists {
     local DB_HOST=${3:-"localhost"}
     local DB_PORT=${4:-"5432"}
 
-    local ROLE_EXISTS="$(su postgres -c "psql -w -h ${DB_HOST} -p ${DB_PORT} -d ${DB_NAME} -U postgres -t --command \"SELECT COUNT(*) FROM pg_roles WHERE rolname='${ROLE}'\"")"
+    local ROLE_EXISTS="$(psql -w -h ${DB_HOST} -p ${DB_PORT} -d ${DB_NAME} -U postgres -t --command \"SELECT COUNT(*) FROM pg_roles WHERE rolname='${ROLE}'\")"
     [[ ${ROLE_EXISTS} -ge 1 ]]
 }
 
@@ -88,8 +88,8 @@ function atl_configureDbPassword {
     local DB_PORT=${4:-"5432"}
 
     atl_log "Configuring DB password for ${DB_HOST}"
-    (su postgres -c "echo '${DB_HOST}:${DB_PORT}:${DB_NAME}:postgres:${PASSWORD}' >> ~/.pgpass") >> "${ATL_LOG}" 2>&1
-    (su postgres -c "chmod 600 ~/.pgpass") >> "${ATL_LOG}" 2>&1
+    (echo '${DB_HOST}:${DB_PORT}:${DB_NAME}:postgres:${PASSWORD}' >> ~/.pgpass) >> "${ATL_LOG}" 2>&1
+    (chmod 600 ~/.pgpass) >> "${ATL_LOG}" 2>&1
     atl_log "Done configuring DB password for ${DB_HOST}"
 }
 
@@ -98,7 +98,7 @@ function atl_dbExists {
     local DB_HOST=${2:-"localhost"}
     local DB_PORT=${3:-"5432"}
 
-    local DB_EXISTS="$(su postgres -c "psql -w -h ${DB_HOST} -p ${DB_PORT} -U postgres -t --command \"SELECT COUNT(*) FROM pg_database WHERE datname='${DB_NAME}'\"")"
+    local DB_EXISTS="$(psql -w -h ${DB_HOST} -p ${DB_PORT} -U postgres -t --command \"SELECT COUNT(*) FROM pg_database WHERE datname='${DB_NAME}'\")"
     [[ ${DB_EXISTS} -ge 1 ]]
 }
 
@@ -108,7 +108,7 @@ function atl_createDb {
     local DB_USER=$3
 
     atl_log "Creating ${PRODUCT_SHORT_DISPLAY_NAME} DB ${DB_NAME}"
-    (su postgres -c "psql -w --command \"CREATE DATABASE ${DB_NAME} WITH OWNER=${DB_USER} ENCODING='UTF8' CONNECTION LIMIT=-1;\"") >> "${ATL_LOG}" 2>&1
+    (psql -w --command \"CREATE DATABASE ${DB_NAME} WITH OWNER=${DB_USER} ENCODING='UTF8' CONNECTION LIMIT=-1;\") >> "${ATL_LOG}" 2>&1
     atl_log "Done creating ${PRODUCT_SHORT_DISPLAY_NAME} DB ${DB_NAME}"
 }
 
@@ -123,7 +123,7 @@ function atl_createRemoteDb {
     local DB_TEMPLATE=${8:-"template1"}
 
     atl_log "Creating ${PRODUCT_SHORT_DISPLAY_NAME} DB ${DB_NAME}"
-    su postgres -c "psql -w -h ${DB_HOST} -p ${DB_PORT} -U postgres --command \"CREATE DATABASE ${DB_NAME} WITH OWNER=${DB_USER} ENCODING='UTF8' LC_COLLATE '${DB_COLLATE}' LC_CTYPE '${DB_CTYPE}' TEMPLATE ${DB_TEMPLATE} CONNECTION LIMIT=-1;\"" >> "${ATL_LOG}" 2>&1
+    psql -w -h ${DB_HOST} -p ${DB_PORT} -U postgres --command \"CREATE DATABASE ${DB_NAME} WITH OWNER=${DB_USER} ENCODING='UTF8' LC_COLLATE '${DB_COLLATE}' LC_CTYPE '${DB_CTYPE}' TEMPLATE ${DB_TEMPLATE} CONNECTION LIMIT=-1;\" >> "${ATL_LOG}" 2>&1
     atl_log "Done creating ${PRODUCT_SHORT_DISPLAY_NAME} DB ${DB_NAME}"
 }
 
@@ -135,9 +135,9 @@ function atl_createRole {
     local DB_PORT=${5:-"5432"}
 
     atl_log "Creating ${PRODUCT_SHORT_DISPLAY_NAME} DB role ${DB_USER}"
-    (su postgres -c "psql -w -h ${DB_HOST} -p ${DB_PORT} -U postgres --command \"CREATE ROLE ${DB_USER} LOGIN PASSWORD '${DB_PASSWORD}' VALID UNTIL 'infinity';\"" || :) >> "${ATL_LOG}" 2>&1
-    (su postgres -c "psql -w -h ${DB_HOST} -p ${DB_PORT} -U postgres --command \"GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ${DB_USER};\"" || :) >> "${ATL_LOG}" 2>&1
-    (su postgres -c "psql -w -h ${DB_HOST} -p ${DB_PORT} -U postgres --command \"GRANT ${DB_USER} TO postgres;\"" || :) >> "${ATL_LOG}" 2>&1
+    (psql -w -h ${DB_HOST} -p ${DB_PORT} -U postgres --command \"CREATE ROLE ${DB_USER} LOGIN PASSWORD '${DB_PASSWORD}' VALID UNTIL 'infinity';\" || :) >> "${ATL_LOG}" 2>&1
+    (psql -w -h ${DB_HOST} -p ${DB_PORT} -U postgres --command \"GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ${DB_USER};\" || :) >> "${ATL_LOG}" 2>&1
+    (psql -w -h ${DB_HOST} -p ${DB_PORT} -U postgres --command \"GRANT ${DB_USER} TO postgres;\" || :) >> "${ATL_LOG}" 2>&1
     atl_log "Done creating ${PRODUCT_SHORT_DISPLAY_NAME} DB role ${DB_USER}"
 }
 
