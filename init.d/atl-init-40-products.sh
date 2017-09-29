@@ -311,6 +311,5 @@ case "$1" in
         ;;
     *)
         echo $"Usage: $0 {start}"
-        RETVAL=1
+        exit 1
 esac
-exit ${RETVAL}
