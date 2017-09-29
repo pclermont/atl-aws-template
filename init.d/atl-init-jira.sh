@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+# set -e
 
 . /etc/init.d/atl-functions
 
@@ -27,9 +27,9 @@ ATL_JIRA_INSTALL_DIR=${ATL_JIRA_INSTALL_DIR:?"The ${ATL_JIRA_SHORT_DISPLAY_NAME}
 ATL_JIRA_HOME=${ATL_JIRA_HOME:?"The ${ATL_JIRA_SHORT_DISPLAY_NAME} home dir must be supplied in ${ATL_FACTORY_CONFIG}"}
 ATL_JIRA_SHARED_HOME="${ATL_JIRA_HOME}/shared"
 ATL_JIRA_SERVICE_NAME="jira"
-ATL_JIRA_VERSION==${ATL_JIRA_VERSION:?"The ${ATL_JIRA_SHORT_DISPLAY_NAME} version must be supplied in ${ATL_FACTORY_CONFIG}"}
-ATL_JIRA_USER="jira" #you don't get to choose user name. Installer creates user 'jira' and that's it
-ATL_JIRA_UID=""
+ATL_JIRA_VERSION=${ATL_JIRA_VERSION:?"The ${ATL_JIRA_SHORT_DISPLAY_NAME} version must be supplied in ${ATL_FACTORY_CONFIG}"}
+ATL_JIRA_USER=${ATL_JIRA_USER:?"The ${ATL_JIRA_SHORT_DISPLAY_NAME} user must be supplied in ${ATL_FACTORY_CONFIG}"}
+ATL_JIRA_UID="400"
 
 ATL_JIRA_RELEASES_S3_URL="https://s3.amazonaws.com/${ATL_RELEASE_S3_BUCKET}/${ATL_RELEASE_S3_PATH}/${ATL_JIRA_NAME}"
 
