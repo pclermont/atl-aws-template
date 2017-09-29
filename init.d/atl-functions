@@ -77,7 +77,7 @@ function atl_roleExists {
     local DB_HOST=${3:-"localhost"}
     local DB_PORT=${4:-"5432"}
 
-    local ROLE_EXISTS="$(psql -w -h ${DB_HOST} -p ${DB_PORT} -d ${DB_NAME} -U postgres -t --command \"SELECT COUNT(*) FROM pg_roles WHERE rolname='${ROLE}'\")"
+    local ROLE_EXISTS=$(psql -w -h ${DB_HOST} -p ${DB_PORT} -d ${DB_NAME} -U postgres -t --command \"SELECT COUNT(*) FROM pg_roles WHERE rolname='${ROLE}'\")
     [[ ${ROLE_EXISTS} -ge 1 ]]
 }
 
@@ -123,7 +123,7 @@ function atl_createRemoteDb {
     local DB_TEMPLATE=${8:-"template1"}
 
     atl_log "Creating ${PRODUCT_SHORT_DISPLAY_NAME} DB ${DB_NAME}"
-    psql -w -h ${DB_HOST} -p ${DB_PORT} -U postgres --command \"CREATE DATABASE ${DB_NAME} WITH OWNER=${DB_USER} ENCODING='UTF8' LC_COLLATE '${DB_COLLATE}' LC_CTYPE '${DB_CTYPE}' TEMPLATE ${DB_TEMPLATE} CONNECTION LIMIT=-1;\" >> "${ATL_LOG}" 2>&1
+    $(psql -w -h ${DB_HOST} -p ${DB_PORT} -U postgres --command \"CREATE DATABASE ${DB_NAME} WITH OWNER=${DB_USER} ENCODING='UTF8' LC_COLLATE '${DB_COLLATE}' LC_CTYPE '${DB_CTYPE}' TEMPLATE ${DB_TEMPLATE} CONNECTION LIMIT=-1\;\" >> "${ATL_LOG}" 2>&1)
     atl_log "Done creating ${PRODUCT_SHORT_DISPLAY_NAME} DB ${DB_NAME}"
 }
 
