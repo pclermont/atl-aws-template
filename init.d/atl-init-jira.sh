@@ -61,6 +61,7 @@ function add_jira_user {
         atl_log "User already exists not, skipping creation."
     else
         atl_log "User does not exists, adding."
+        groupadd --gid ${ATL_JIRA_UID} ${ATL_JIRA_USER}
         useradd -m --uid ${ATL_JIRA_UID} -g ${ATL_JIRA_USER} ${ATL_JIRA_USER}
     fi
 }
