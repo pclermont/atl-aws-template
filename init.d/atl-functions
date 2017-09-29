@@ -77,7 +77,7 @@ function atl_roleExists {
     local DB_HOST=${3:-"localhost"}
     local DB_PORT=${4:-"5432"}
 
-    local ROLE_EXISTS=$(psql -w -h ${DB_HOST} -p ${DB_PORT} -d ${DB_NAME} -U postgres -t --command \"SELECT COUNT(*) FROM pg_roles WHERE rolname='${ROLE}'\")
+    local ROLE_EXISTS=$(psql -w -h ${DB_HOST} -p ${DB_PORT} -d ${DB_NAME} -U postgres -t --command \"SELECT COUNT\(*\) FROM pg_roles WHERE rolname='${ROLE}'\")
     [[ ${ROLE_EXISTS} -ge 1 ]]
 }
 
