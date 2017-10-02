@@ -1,6 +1,6 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "QS(0035) Atlassian Jira Data Center June,21,2017",
+  "Description": "Atlassian Solution Template",
   "Metadata": {
     "AWS::CloudFormation::Interface": {
       "ParameterGroups": [{
@@ -41,7 +41,6 @@
           "VPC",
           "ExternalSubnets",
           "InternalSubnets",
-          "AssociatePublicIpAddress",
           "KeyName",
           "CustomDnsName",
           "SSLCertificateName"
@@ -51,15 +50,20 @@
           "default": "Advanced (Optional)"
         },
         "Parameters": [
-          "CatalinaOpts"
+          "CatalinaOpts",
+          "JVMMinimumMemory",
+          "JVMMaximumMemory",
         ]
       }],
       "ParameterLabels": {
-        "AssociatePublicIpAddress": {
-          "default": "Assign public IP"
-        },
         "CatalinaOpts": {
           "default": "Catalina options"
+        },
+        "JVMMinimumMemory": {
+          "default": "JVM Minimum Memory in megs"
+        },
+        "JVMMaximumMemory": {
+          "default": "JVM Maximum Memory in megs"
         },
         "ClusterNodeMax": {
           "default": "Maximum number of cluster nodes"
@@ -113,16 +117,6 @@
     }
   },
   "Parameters": {
-    "AssociatePublicIpAddress": {
-      "Description": "Controls if the EC2 instances are assigned a public IP address",
-      "Type": "String",
-      "Default": "true",
-      "AllowedValues": [
-        "true",
-        "false"
-      ],
-      "ConstraintDescription": "Must be 'true' or 'false'."
-    },
     "ClusterNodeMax": {
       "Type": "Number",
       "Default": "1"
@@ -155,6 +149,14 @@
     "CatalinaOpts": {
       "Type": "String",
       "Default": ""
+    },
+    "JVMMinimumMemory": {
+      "Type": "Number",
+      "Default": 384
+    },
+    "JVMMaximumMemory": {
+      "Type": "Number",
+      "Default": 768
     },
     "Version": {
       "Type": "String",
@@ -458,37 +460,52 @@
         "Comment": "",
         "AWS::CloudFormation::Init": {
           "configSets": {
-            "default" : [ "install", "common", "jira" ]
+            "default" : [
+              "install",
+              "common",
+              { "Ref": "AtlassianProduct" },
+              "startservices"
+            ]
           },
           "install": {
             "files": {
               "/etc/sysconfig/atl": {
                 "content": {
                   "Fn::Join": [
-                    "\n", [
-                      "ATL_LOG=/var/log/atl.log",
-                      "ATL_APP_DATA_MOUNT_ENABLED=true",
-                      "ATL_APP_DATA_BLOCK_DEVICE=/dev/xvdf",
-                      "ATL_APP_DATA_MOUNT=\"/media/atl\"",
-                      "ATL_APP_DATA_DIR=\"/var/atlassian/application-data\"",
-                      "ATL_APP_DATA_FS_TYPE=\"zfs\"",
-                      "ATL_INSTANCE_STORE_BLOCK_DEVICE=\"/dev/xvdb\"",
-                      "ATL_INSTANCE_STORE_MOUNT=\"/media/ephemeral0\"",
-                      "ATL_APP_NFS_SERVER=false",
-                      "ATL_RELEASE_S3_BUCKET=atlassian-software",
-                      "ATL_RELEASE_S3_PATH=\"\"",
-                      "ATL_HOST_NAME=",
-                      "ATL_POSTGRES_ENABLED=true",
-                      "ATL_NGINX_ENABLED=true",
-                      "ATL_SSL_SELF_CERT_ENABLED=false",
-                      "ATL_SSL_SELF_CERT_COUNTRY=US",
-                      "ATL_SSL_SELF_CERT_STATE=CA",
-                      "ATL_SSL_SELF_CERT_LOCALE=\"San Francisco\"",
-                      "ATL_SSL_SELF_CERT_ORG=\"An Atlassian Customer\"",
-                      "ATL_SSL_SELF_CERT_ORG_UNIT=\"An Atlassian Customer's Team\"",
-                      "ATL_SSL_SELF_CERT_EMAIL_ADDRESS=sales@atlassian.com",
-                      "ATL_SSL_SELF_CERT_PATH=/etc/nginx/ssl/self-ssl.crt",
-                      "ATL_SSL_SELF_CERT_KEY_PATH=/etc/nginx/ssl/self-ssl.key"
+                    "", [
+                      "ATL_LOG=/var/log/atl.log\n",
+                      "ATL_APP_DATA_MOUNT_ENABLED=true\n",
+                      "ATL_APP_DATA_BLOCK_DEVICE=/dev/xvdf\n",
+                      "ATL_APP_DATA_MOUNT=\"/media/atl\"\n",
+                      "ATL_APP_DATA_DIR=\"/var/atlassian/application-data\"\n",
+                      "ATL_APP_DATA_FS_TYPE=\"zfs\"\n",
+                      "ATL_JVM_MINIMUM_MEMORY=\"",
+                      {
+                        "Ref": "JVMMinimumMemory"
+                      },
+                      "m\"\n",
+                      "ATL_JVM_MAXIMUM_MEMORY=\"",
+                      {
+                        "Ref": "JVMMaximumMemory"
+                      },
+                      "m\"\n",
+                      "ATL_INSTANCE_STORE_BLOCK_DEVICE=\"/dev/xvdb\"\n",
+                      "ATL_INSTANCE_STORE_MOUNT=\"/media/ephemeral0\"\n",
+                      "ATL_APP_NFS_SERVER=false\n",
+                      "ATL_RELEASE_S3_BUCKET=atlassian-software\n",
+                      "ATL_RELEASE_S3_PATH=\"\"\n",
+                      "ATL_HOST_NAME=\n",
+                      "ATL_POSTGRES_ENABLED=true\n",
+                      "ATL_NGINX_ENABLED=true\n",
+                      "ATL_SSL_SELF_CERT_ENABLED=false\n",
+                      "ATL_SSL_SELF_CERT_COUNTRY=US\n",
+                      "ATL_SSL_SELF_CERT_STATE=CA\n",
+                      "ATL_SSL_SELF_CERT_LOCALE=\"San Francisco\"\n",
+                      "ATL_SSL_SELF_CERT_ORG=\"An Atlassian Customer\"\n",
+                      "ATL_SSL_SELF_CERT_ORG_UNIT=\"An Atlassian Customer's Team\"\n",
+                      "ATL_SSL_SELF_CERT_EMAIL_ADDRESS=sales@atlassian.com\n",
+                      "ATL_SSL_SELF_CERT_PATH=/etc/nginx/ssl/self-ssl.crt\n",
+                      "ATL_SSL_SELF_CERT_KEY_PATH=/etc/nginx/ssl/self-ssl.key\n"
                     ]
                   ]
                 }
@@ -600,15 +617,15 @@
                 "ignoreErrors": "false"
               },
               "090_fetch_init_volumes": {
-                "command": "curl https://raw.githubusercontent.com/pclermont/atl-aws-template/master/init.d/atl-init-10-volume.sh >> /tmp/atl-init-10-volume.sh",
+                "command": "curl https://raw.githubusercontent.com/pclermont/atl-aws-template/master/init.d/atl-init-10-volume.sh >> /tmp/atl-init-10-volume",
                 "ignoreErrors": "false"
               },
               "100_fetch_init_instance_store": {
-                "command": "curl https://raw.githubusercontent.com/pclermont/atl-aws-template/master/init.d/atl-init-20-instance-store.sh >> /tmp/atl-init-20-instance-store.sh",
+                "command": "curl https://raw.githubusercontent.com/pclermont/atl-aws-template/master/init.d/atl-init-20-instance-store.sh >> /tmp/atl-init-20-instance-store",
                 "ignoreErrors": "false"
               },
               "110_fetch_init_products": {
-                "command": "curl https://raw.githubusercontent.com/pclermont/atl-aws-template/master/init.d/atl-init-40-products.sh >> /tmp/atl-init-40-products.sh",
+                "command": "curl https://raw.githubusercontent.com/pclermont/atl-aws-template/master/init.d/atl-init-40-products.sh >> /tmp/atl-init-40-products",
                 "ignoreErrors": "false"
               },
               "120_mv_init_scripts": {
@@ -643,32 +660,32 @@
               }
             }
           },
-          "jira": {
+          "Jira": {
             "files": {
               "/etc/atl": {
                 "content": {
                   "Fn::Join": [
-                    "", [
+                    "",
+                    [
                       "ATL_NGINX_ENABLED=false\n",
                       "ATL_APP_DATA_MOUNT_ENABLED=false\n",
-                      "ATL_DB_NAME=jira\n",
-                      "ATL_DB_USER=jira\n",
-                      "ATL_DB_PASSWORD=", {
+                      "ATL_DB_NAME=atljira\n",
+                      "ATL_DB_USER=atljira\n",
+                      "ATL_DB_PASSWORD=",
+                      {
                         "Ref": "DBMasterUserPassword"
                       },
                       "\n",
-                      "ATL_DB_HOST=", {
+                      "ATL_DB_HOST=",
+                      {
                         "Fn::GetAtt": [
                           "DB",
                           "Endpoint.Address"
                         ]
                       },
                       "\n",
-                      "ATL_JIRA_VERSION=", {
-                        "Ref": "Version"
-                      },
-                      "\n",
-                      "ATL_DB_PORT=", {
+                      "ATL_DB_PORT=",
+                      {
                         "Fn::GetAtt": [
                           "DB",
                           "Endpoint.Port"
@@ -676,41 +693,55 @@
                       },
                       "\n",
                       "ATL_JDBC_DRIVER=org.postgresql.Driver\n",
-                      "ATL_JDBC_URL=jdbc:postgresql://", {
+                      "ATL_JDBC_URL=jdbc:postgresql://",
+                      {
                         "Fn::GetAtt": [
                           "DB",
                           "Endpoint.Address"
                         ]
                       },
-                      ":", {
+                      ":",
+                      {
                         "Fn::GetAtt": [
                           "DB",
                           "Endpoint.Port"
                         ]
                       },
-                      "/jira\n",
+                      "/atljira\n",
                       "ATL_JDBC_USER=atljira\n",
-                      "ATL_JDBC_PASSWORD=", {
+                      "ATL_JDBC_PASSWORD=",
+                      {
                         "Ref": "DBPassword"
                       },
                       "\n",
                       "ATL_ENABLED_PRODUCTS=Jira\n",
                       "ATL_ENABLED_SHARED_HOMES=\n",
-                      "ATL_JIRA_NAME=jira-software",
-                      "\n",
-                      "ATL_JIRA_SHORT_DISPLAY_NAME=\"JIRA SW\"",
-                      "\n",
-                      "ATL_JIRA_FULL_DISPLAY_NAME=\"Atlassian JIRA Software\"",
+                      "ATL_JIRA_NAME=jira-software\n",
+                      "ATL_JIRA_SHORT_DISPLAY_NAME=\"JIRA SW\"\n",
+                      "ATL_JIRA_FULL_DISPLAY_NAME=\"Atlassian JIRA Software\"\n",
+                      "ATL_JIRA_INSTALL_DIR=/opt/atlassian/jira\n",
+                      "ATL_JIRA_USER=\"jira\"\n",
+                      "ATL_JIRA_CONFIG_PROPERTIES=\n",
+                      "ATL_JIRA_DB_NAME=\"atljira\"\n",
+                      "ATL_JIRA_DB_USER=\"atljira\"\n",
+                      "ATL_JIRA_HOME=\"/var/atlassian/application-data/jira\"\n",
+                      "ATL_JIRA_NGINX_PATH=/\n",
+                      "ATL_JIRA_VERSION=",
+                      {
+                        "Ref": "Version"
+                      },
                       "\n",
                       "ATL_RELEASE_S3_BUCKET=atlassian-software\n",
                       "ATL_RELEASE_S3_PATH=releases\n",
-
                       "ATL_POSTGRES_ENABLED=false\n",
-                      "ATL_PROXY_NAME=", {
+                      "ATL_PROXY_NAME=",
+                      {
                         "Fn::If": [
-                          "UseCustomDnsName", {
+                          "UseCustomDnsName",
+                          {
                             "Ref": "CustomDnsName"
-                          }, {
+                          },
+                          {
                             "Fn::GetAtt": [
                               "LoadBalancer",
                               "DNSName"
@@ -719,10 +750,12 @@
                         ]
                       },
                       "\n",
-                      "ATL_SSL_SELF_CERT_ENABLED=false\n", {
+                      "ATL_SSL_SELF_CERT_ENABLED=false\n",
+                      {
                         "Fn::If": [
                           "DoSSL",
-                          "ATL_SSL_PROXY=true\n", {
+                          "ATL_SSL_PROXY=true\n",
+                          {
                             "Ref": "AWS::NoValue"
                           }
                         ]
@@ -738,23 +771,23 @@
                 "ignoreErrors": "false"
               },
               "11_chmod_init_jira": {
-                "command": "chmod 755 /tmp/atl-init-jira.sh && chown root:root /tmp/atl-init-jira.sh && mv /tmp/atl-init-jira.sh /etc/init.d/",
+                "command": "chmod 755 /tmp/atl-init-jira.sh && chown root:root /tmp/atl-init-jira.sh && mv /tmp/atl-init-jira.sh /etc/init.d/atl-init-jira",
                 "ignoreErrors": "false"
-              },
+              }
+            }
+          },
+          "startservices": {
+            "commands": {
               "20_init_volume": {
-                "command": "/etc/init.d/atl-init-10-volume.sh start",
+                "command": "/etc/init.d/atl-init-10-volume start",
                 "ignoreErrors": "false"
               },
               "30_init_instance_store": {
-                "command": "/etc/init.d/atl-init-20-instance-store.sh start",
+                "command": "/etc/init.d/atl-init-20-instance-store start",
                 "ignoreErrors": "false"
               },
               "40_init_products": {
-                "command": "/etc/init.d/atl-init-40-products.sh start",
-                "ignoreErrors": "false"
-              },
-              "50_init_jira": {
-                "command": "/etc/init.d/atl-init-jira.sh start",
+                "command": "/etc/init.d/atl-init-40-products start",
                 "ignoreErrors": "false"
               }
             }
@@ -762,9 +795,6 @@
         }
       },
       "Properties": {
-        "AssociatePublicIpAddress": {
-          "Ref": "AssociatePublicIpAddress"
-        },
         "BlockDeviceMappings": [{
           "DeviceName": "/dev/xvdf",
           "Ebs": {},
