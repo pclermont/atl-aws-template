@@ -19,6 +19,17 @@ If <new host name> is omitted, it defaults to $(atl_hostName).
 EOF
 }
 
+function FixHostFile {
+    local myIP=$(ip addr show eth0 |  awk  '$1=="inet"{print $2}' | cut -d'/' -f1)
+    local myHostname=$(hostname)
+    local extraName=$1
+
+     if ! grep -q "${myHostname}" /etc/hosts ; then
+        echo "Adding ${myHostname} to hosts file."
+        echo "${myIP} ${myHostname} ${extraName}" >> /etc/hosts
+     fi
+}
+
 if [[ "root" != "$(whoami)" ]]; then
     usage
     exit 1
@@ -37,6 +48,7 @@ case ${HOST_NAME} in
 esac
 
 atl_setNginxHostName "${HOST_NAME}"
+FixHostFile "${HOST_NAME}"
 
 for product in $(atl_enabled_products); do
     LOWER_CASE_PRODUCT="$(atl_toLowerCase ${product})"
