@@ -135,6 +135,7 @@ EOT
 function configureJIRAHome {
     atl_log "Configuring ${ATL_JIRA_HOME}"
     mkdir -p "${ATL_JIRA_HOME}" >> "${ATL_LOG}" 2>&1
+    chown -R -H "${ATL_JIRA_USER}":"${ATL_JIRA_USER}" "${ATL_JIRA_HOME}" >> "${ATL_LOG}" 2>&1
 
     configureSharedHome
 
@@ -142,7 +143,8 @@ function configureJIRAHome {
     initInstanceData "tmp"
 
     atl_log "Setting ownership of ${ATL_JIRA_HOME} to '${ATL_JIRA_USER}' user"
-    chown -R -H "${ATL_JIRA_USER}":"${ATL_JIRA_USER}" "${ATL_JIRA_HOME}" >> "${ATL_LOG}" 2>&1 
+    chown -R -H "${ATL_JIRA_USER}":"${ATL_JIRA_USER}" "${ATL_JIRA_HOME}" >> "${ATL_LOG}" 2>&1
+
     atl_log "Done configuring ${ATL_JIRA_HOME}"
 }
 
