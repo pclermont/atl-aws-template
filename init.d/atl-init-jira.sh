@@ -58,12 +58,18 @@ function add_jira_user {
     getent passwd ${ATL_JIRA_USER} > /dev/null 2&>1
 
     if [ $? -eq 0 ]; then
-        atl_log "User already exists not, skipping creation."
+        if [ $(id -u ${ATL_JIRA_USER}) == ${ATL_JIRA_UID} ]; then
+            atl_log "User already exists not, skipping creation."
+            return
+        else
+            atl_log "User already exists, fixing UID."
+            userdel ${ATL_JIRA_USER}
+        fi
     else
         atl_log "User does not exists, adding."
-        groupadd --gid ${ATL_JIRA_UID} ${ATL_JIRA_USER}
-        useradd -m --uid ${ATL_JIRA_UID} -g ${ATL_JIRA_USER} ${ATL_JIRA_USER}
     fi
+    groupadd --gid ${ATL_JIRA_UID} ${ATL_JIRA_USER}
+    useradd -m --uid ${ATL_JIRA_UID} -g ${ATL_JIRA_USER} ${ATL_JIRA_USER}
 }
 
 function createInstanceStoreDirs {
@@ -285,7 +291,6 @@ function installJIRA {
         atl_log "${ERROR_MESSAGE}"
         atl_fatal_error "${ERROR_MESSAGE}"
     fi
-    add_jira_user
 
     prepareInstaller
 
@@ -295,6 +300,8 @@ function installJIRA {
     atl_log "Installing ${ATL_JIRA_SHORT_DISPLAY_NAME} to ${ATL_JIRA_INSTALL_DIR}"
     "$(atl_tempDir)/installer" -q -varfile "$(atl_tempDir)/installer.varfile" >> "${ATL_LOG}" 2>&1
     atl_log "Installed ${ATL_JIRA_SHORT_DISPLAY_NAME} to ${ATL_JIRA_INSTALL_DIR}"
+
+    add_jira_user
 
     atl_log "Cleaning up"
     rm -rf "$(atl_tempDir)"/installer* >> "${ATL_LOG}" 2>&1
