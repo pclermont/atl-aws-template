@@ -141,6 +141,17 @@ function atl_createRole {
     atl_log "Done creating ${PRODUCT_SHORT_DISPLAY_NAME} DB role ${DB_USER}"
 }
 
+function FixHostFile {
+    local myIP=$(ip addr show eth0 |  awk  '$1=="inet"{print $2}' | cut -d'/' -f1)
+    local myHostname=$(hostname)
+    local extraName=$1
+
+     if ! grep -q "${myHostname}" /etc/hosts ; then
+        echo "Adding ${myHostname} to hosts file."
+        echo "${myIP} ${myHostname} ${extraName}" >> /etc/hosts
+     fi
+}
+
 function atl_addNginxProductMapping {
     local PROD_PATH=$1
     local PROD_PORT=$2

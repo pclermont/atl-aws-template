@@ -340,6 +340,8 @@ function updateHostName {
         "${ATL_JIRA_INSTALL_DIR}/conf" \
         "${ATL_JIRA_INSTALL_DIR}/atlassian-jira/WEB-INF"
 
+    FixHostFile "${ATL_HOST_NAME}"
+
     STATUS="$(service "${ATL_JIRA_SERVICE_NAME}" status || true)"
     if [[ "${STATUS}" =~ .*\ is\ running ]]; then
         atl_log "Restarting ${ATL_JIRA_SHORT_DISPLAY_NAME} to pick up host name change"
