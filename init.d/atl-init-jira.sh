@@ -198,6 +198,15 @@ function configureRemoteDb {
     fi
 }
 
+function configureJVMMermory {
+    atl_log "Configuring JVM Memory for ${ATL_JIRA_SHORT_DISPLAY_NAME}"
+
+    sed -i -e "s/JVM_MINIMUM_MEMORY=.*/JVM_MINIMUM_MEMORY=${ATL_JVM_MINIMUM_MEMORY}/g" ${ATL_JIRA_INSTALL_DIR}/bin/setenv.sh
+    sed -i -e "s/JVM_MAXIMUM_MEMORY=.*/JVM_MAXIMUM_MEMORY=${ATL_JVM_MAXIMUM_MEMORY}/g" ${ATL_JIRA_INSTALL_DIR}/bin/setenv.sh
+
+    atl_log "Configuring JVM Memory of ${ATL_JIRA_SHORT_DISPLAY_NAME} Done."
+}
+
 function preserveInstaller {
     local ATL_LOG_HEADER="[preserveInstaller]:"
 
@@ -312,6 +321,7 @@ function installJIRA {
     atl_log "Making Sure that Jira is using the proper user"
     sed -i -e "s/JIRA_USER=.*/JIRA_USER=${ATL_JIRA_USER}/g" ${ATL_JIRA_INSTALL_DIR}/bin/user.sh
 
+    configureJVMMermory
     atl_log "${ATL_JIRA_SHORT_DISPLAY_NAME} installation completed"
 }
 
