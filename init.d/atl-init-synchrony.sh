@@ -305,10 +305,31 @@ EOT
     atl_log "Cleaning up"
     rm -rf "$(atl_tempDir)"/installer* >> "${ATL_LOG}" 2>&1
 
+    add_confluence_user
+
     chown -R "${ATL_CONFLUENCE_USER}":"${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_INSTALL_DIR}"
 
     atl_log "${ATL_CONFLUENCE_SHORT_DISPLAY_NAME} installation completed"
     return 0
+}
+
+function add_confluence_user {
+    atl_log "Making sure that the user ${ATL_CONFLUENCE_USER} exists."
+    getent passwd ${ATL_CONFLUENCE_USER} > /dev/null 2&>1
+
+    if [ $? -eq 0 ]; then
+        if [ $(id -u ${ATL_CONFLUENCE_USER}) == ${ATL_CONFLUENCE_UID} ]; then
+            atl_log "User already exists not, skipping creation."
+            return
+        else
+            atl_log "User already exists, fixing UID."
+            userdel ${ATL_CONFLUENCE_USER}
+        fi
+    else
+        atl_log "User does not exists, adding."
+    fi
+    groupadd --gid ${ATL_CONFLUENCE_UID} ${ATL_CONFLUENCE_USER}
+    useradd -m --uid ${ATL_CONFLUENCE_UID} -g ${ATL_CONFLUENCE_USER} ${ATL_CONFLUENCE_USER}
 }
 
 # prepare Confluence Share home link inside Confluence Home folder
