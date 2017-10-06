@@ -1,6 +1,5 @@
 #!/bin/bash
 
-set -e
 
 # in a case of "test", we just need to load functions into the testing context
 if ! [ "$1" == "test" ]; then
@@ -308,7 +307,11 @@ EOT
     add_confluence_user
 
     chown -R "${ATL_CONFLUENCE_USER}":"${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_INSTALL_DIR}"
+    chown -R "${ATL_CONFLUENCE_USER}":"${ATL_CONFLUENCE_USER}" "${CONFLUENCE_SHARED}"
+    chown -R "${ATL_CONFLUENCE_USER}":"${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_HOME}"
+    sed -i -e "s/CONF_USER=.*/CONF_USER=${ATL_CONFLUENCE_USER}/g" ${ATL_CONFLUENCE_INSTALL_DIR}/bin/user.sh
 
+    configureJVMMermory
     atl_log "${ATL_CONFLUENCE_SHORT_DISPLAY_NAME} installation completed"
     return 0
 }
@@ -330,6 +333,8 @@ function add_confluence_user {
     fi
     groupadd --gid ${ATL_CONFLUENCE_UID} ${ATL_CONFLUENCE_USER}
     useradd -m --uid ${ATL_CONFLUENCE_UID} -g ${ATL_CONFLUENCE_USER} ${ATL_CONFLUENCE_USER}
+    chown -R ${ATL_CONFLUENCE_USER}:${ATL_CONFLUENCE_USER} /home/${ATL_CONFLUENCE_USER}
+
 }
 
 # prepare Confluence Share home link inside Confluence Home folder

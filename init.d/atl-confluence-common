@@ -39,6 +39,15 @@ fi
 ATL_CONFLUENCE_SHARED_HOME="${ATL_CONFLUENCE_HOME}/shared-home"
 ATL_CONFLUENCE_SERVICE_NAME="confluence"
 
+function configureJVMMermory {
+    atl_log "Configuring JVM Memory for ${ATL_JIRA_SHORT_DISPLAY_NAME}"
+
+    sed -i -e "s/JVM_MINIMUM_MEMORY=.*/JVM_MINIMUM_MEMORY=${ATL_JVM_MINIMUM_MEMORY}/g" ${ATL_CONFLUENCE_INSTALL_DIR}/bin/setenv.sh
+    sed -i -e "s/JVM_MAXIMUM_MEMORY=.*/JVM_MAXIMUM_MEMORY=${ATL_JVM_MAXIMUM_MEMORY}/g" ${ATL_CONFLUENCE_INSTALL_DIR}/bin/setenv.sh
+
+    atl_log "Configuring JVM Memory of ${ATL_JIRA_SHORT_DISPLAY_NAME} Done."
+}
+
 function exportCatalinaOpts() {
     atl_log "=== BEGIN: service exportCatalinaOpts ==="
     cat <<EOT | su "${ATL_CONFLUENCE_USER}" -c "tee -a \"/home/${ATL_CONFLUENCE_USER}/.bash_profile\"" > /dev/null 2>&1
