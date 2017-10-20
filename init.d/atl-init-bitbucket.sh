@@ -151,7 +151,9 @@ function createInstanceStoreDirs {
 function createBitbucketHome {
     atl_log "Creating ${ATL_BITBUCKET_HOME}"
     mkdir -p "${ATL_BITBUCKET_HOME}" >> "${ATL_LOG}" 2>&1
+    mkdir -p "${ATL_APP_DATA_MOUNT}/${ATL_BITBUCKET_NAME}" >> "${ATL_LOG}" 2>&1
     chown "${ATL_BITBUCKET_USER}":"${ATL_BITBUCKET_USER}" "${ATL_BITBUCKET_HOME}" >> "${ATL_LOG}" 2>&1
+    chown -R "${ATL_BITBUCKET_USER}":"${ATL_BITBUCKET_USER}" "${ATL_APP_DATA_MOUNT}/${ATL_BITBUCKET_NAME} >> "${ATL_LOG}" 2>&1
 
     if mountpoint -q "${ATL_APP_DATA_MOUNT}" || mountpoint -q "${ATL_APP_DATA_MOUNT}/${ATL_BITBUCKET_NAME}/shared"; then
         atl_log "Linking ${ATL_BITBUCKET_SHARED_HOME} to ${ATL_APP_DATA_MOUNT}/${ATL_BITBUCKET_NAME}/shared"
@@ -183,7 +185,7 @@ function configureDbProperties {
     local JDBC_PROPS="jdbc.driver=${1}\n"
     JDBC_PROPS+="jdbc.url=${2}\n"
     JDBC_PROPS+="jdbc.user=${3}\n"
-    JDBC_PROPS+="jdbc.password=${4}\n"
+    JDBC_PROPS+="jdbc.passworgit stad=${4}\n"
     # Command substitution will strip trailing newlines, so we need to include it after the assignment
     ATL_BITBUCKET_PROPERTIES="$(echo -e ${JDBC_PROPS})
 ${ATL_BITBUCKET_PROPERTIES}"
@@ -256,7 +258,9 @@ EOT
     "$(atl_tempDir)/installer" -q -varfile "$(atl_tempDir)/installer.varfile" >> "${ATL_LOG}" 2>&1
     atl_log "Installed ${ATL_BITBUCKET_SHORT_DISPLAY_NAME} to ${ATL_BITBUCKET_INSTALL_DIR}"
 
+    add_bitbucket_user
 
+    sed -i -e "s/BITBUCKET_USER=.*/BITBUCKET_USER=${ATL_BITBUCKET_USER}/g" "${ATL_BITBUCKET_INSTALL_DIR}/bin/set-bitbucket-user.sh"
 
     atl_log "Cleaning up"
     rm -rf "$(atl_tempDir)"/installer* >> "${ATL_LOG}" 2>&1
