@@ -17,7 +17,7 @@ if [[ "x${ATL_BITBUCKET_VERSION}" == "xlatest" ]]; then
 else
     ATL_BITBUCKET_INSTALLER="atlassian-${ATL_BITBUCKET_NAME}-${ATL_BITBUCKET_VERSION}-linux-x64.bin"
 fi
-ATL_BITBUCKET_INSTALLER_S3_PATH="${ATL_RELEASE_S3_PATH}/${ATL_BITBUCKET_VERSION}/${ATL_BITBUCKET_INSTALLER}"
+ATL_BITBUCKET_INSTALLER_S3_PATH="${ATL_RELEASE_S3_PATH}/${ATL_BITBUCKET_NAME}/${ATL_BITBUCKET_INSTALLER}"
 ATL_BITBUCKET_INSTALLER_DOWNLOAD_URL="${ATL_BITBUCKET_INSTALLER_DOWNLOAD_URL:-"https://s3.amazonaws.com/${ATL_RELEASE_S3_BUCKET}/${ATL_BITBUCKET_INSTALLER_S3_PATH}"}"
 
 ATL_LOG=${ATL_LOG:?"The Atlassian log location must be supplied in ${ATL_FACTORY_CONFIG}"}
@@ -88,6 +88,27 @@ function appendBitbucketProperties {
         atl_log "Not initialising ${PROP_PATH}, a file ${PROP_PATH}.tmp already exists."
     fi
     set +C
+}
+
+function add_bitbucket_user {
+    atl_log "Making sure that the user ${ATL_BITBUCKET_USER} exists."
+    getent passwd ${ATL_BITBUCKET_USER} > /dev/null 2&>1
+
+    if [ $? -eq 0 ]; then
+        if [ $(id -u ${ATL_BITBUCKET_USER}) == ${ATL_BITBUCKET_UID} ]; then
+            atl_log "User already exists not, skipping creation."
+            return
+        else
+            atl_log "User already exists, fixing UID."
+            userdel ${ATL_BITBUCKET_USER}
+        fi
+    else
+        atl_log "User does not exists, adding."
+    fi
+    groupadd --gid ${ATL_BITBUCKET_UID} ${ATL_BITBUCKET_USER}
+    useradd -m --uid ${ATL_BITBUCKET_UID} -g ${ATL_BITBUCKET_USER} ${ATL_BITBUCKET_USER}
+    chown -R ${ATL_BITBUCKET_USER}:${ATL_BITBUCKET_USER} /home/${ATL_BITBUCKET_USER}
+
 }
 
 function addOrReplaceProperty {
@@ -236,6 +257,8 @@ EOT
     atl_log "Installing ${ATL_BITBUCKET_SHORT_DISPLAY_NAME} to ${ATL_BITBUCKET_INSTALL_DIR}"
     "$(atl_tempDir)/installer" -q -varfile "$(atl_tempDir)/installer.varfile" >> "${ATL_LOG}" 2>&1
     atl_log "Installed ${ATL_BITBUCKET_SHORT_DISPLAY_NAME} to ${ATL_BITBUCKET_INSTALL_DIR}"
+
+
 
     atl_log "Cleaning up"
     rm -rf "$(atl_tempDir)"/installer* >> "${ATL_LOG}" 2>&1
