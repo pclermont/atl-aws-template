@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e
-
 . /etc/init.d/atl-functions
 
 trap 'atl_error ${LINENO}' ERR
