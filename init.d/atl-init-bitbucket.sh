@@ -213,6 +213,7 @@ function configureRemoteDb {
             atl_log "${ATL_BITBUCKET_DB_USER} role already exists. Skipping role creation."
         else
             atl_createRole "${ATL_BITBUCKET_SHORT_DISPLAY_NAME}" "${ATL_JDBC_USER}" "${ATL_JDBC_PASSWORD}" "${ATL_DB_HOST}" "${ATL_DB_PORT}"
+            atl_createRemoteDb "${ATL_BITBUCKET_SHORT_DISPLAY_NAME}" "${ATL_DB_NAME}" "${ATL_JDBC_USER}" "${ATL_DB_HOST}" "${ATL_DB_PORT}" "C" "C" "template0"
         fi
     fi
     configureDbProperties "${ATL_JDBC_DRIVER}" "${ATL_JDBC_URL}" "${ATL_JDBC_USER}" "${ATL_JDBC_PASSWORD}"
