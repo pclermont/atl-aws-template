@@ -306,9 +306,9 @@ EOT
 
     add_confluence_user
 
-    chown -R "${ATL_CONFLUENCE_USER}":"${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_INSTALL_DIR}"
-    chown -R "${ATL_CONFLUENCE_USER}":"${ATL_CONFLUENCE_USER}" "${ATL_APP_DATA_MOUNT}/${ATL_CONFLUENCE_SERVICE_NAME}"
-    chown -R "${ATL_CONFLUENCE_USER}":"${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_HOME}"
+    atl_ChangeFolderOwnership "${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_INSTALL_DIR}" >> "${ATL_LOG}"
+    atl_ChangeFolderOwnership "${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_USER}" "${ATL_APP_DATA_MOUNT}/${ATL_CONFLUENCE_SERVICE_NAME}" >> "${ATL_LOG}"
+    atl_ChangeFolderOwnership "${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_HOME}" >> "${ATL_LOG}"
     sed -i -e "s/CONF_USER=.*/CONF_USER=${ATL_CONFLUENCE_USER}/g" ${ATL_CONFLUENCE_INSTALL_DIR}/bin/user.sh
 
     configureJVMMermory
@@ -333,8 +333,7 @@ function add_confluence_user {
     fi
     groupadd --gid ${ATL_CONFLUENCE_UID} ${ATL_CONFLUENCE_USER}
     useradd -m --uid ${ATL_CONFLUENCE_UID} -g ${ATL_CONFLUENCE_USER} ${ATL_CONFLUENCE_USER}
-    chown -R ${ATL_CONFLUENCE_USER}:${ATL_CONFLUENCE_USER} /home/${ATL_CONFLUENCE_USER}
-
+    atl_ChangeFolderOwnership "${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_USER}" "/home/${ATL_CONFLUENCE_USER}" >> "${ATL_LOG}"
 }
 
 # prepare Confluence Share home link inside Confluence Home folder
@@ -343,7 +342,7 @@ function configureSharedHome {
     local CONFLUENCE_SHARED="${ATL_APP_DATA_MOUNT}/${ATL_CONFLUENCE_SERVICE_NAME}/shared-home"
     if mountpoint -q "${ATL_APP_DATA_MOUNT}" || mountpoint -q "${CONFLUENCE_SHARED}"; then
         mkdir -p "${CONFLUENCE_SHARED}"
-        chown -R -H "${ATL_CONFLUENCE_USER}":"${ATL_CONFLUENCE_USER}" "${CONFLUENCE_SHARED}" >> "${ATL_LOG}" 2>&1
+        atl_ChangeFolderOwnership "${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_USER}" "${CONFLUENCE_SHARED}" >> "${ATL_LOG}"
         su "${ATL_CONFLUENCE_USER}" -c "ln -s \"${CONFLUENCE_SHARED}\" \"${ATL_CONFLUENCE_SHARED_HOME}\"" >> "${ATL_LOG}" 2>&1
     else
         atl_log "No mountpoint for shared home exists. Failed to create cluster.properties file."
@@ -361,7 +360,7 @@ function configureConfluenceHome {
     fi
 
     atl_log "Setting ownership of ${ATL_CONFLUENCE_HOME} to '${ATL_CONFLUENCE_USER}' user"
-    chown -R -H "${ATL_CONFLUENCE_USER}":"${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_HOME}" >> "${ATL_LOG}" 2>&1
+    atl_ChangeFolderOwnership "${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_HOME}" >> "${ATL_LOG}"
     atl_log "Done configuring ${ATL_CONFLUENCE_HOME}"
 }
 

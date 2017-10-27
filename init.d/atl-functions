@@ -362,3 +362,11 @@ function atl_resolveHostNamesAndIps {
     _ATL_PUBLIC_IPV4=$(curl -f --silent http://169.254.169.254/latest/meta-data/public-ipv4 || echo "")
     _ATL_PRIVATE_IPV4=$(curl -f --silent http://169.254.169.254/latest/meta-data/local-ipv4 || echo "")
 }
+
+
+function atl_ChangeFolderOwnership {
+    local username=$1
+    local group=$2
+    local folder=$3
+    find ${folder} -not -user ${username} -exec chown ${username}:${group} {}\;
+}
