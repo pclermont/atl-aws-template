@@ -260,7 +260,7 @@ function installConfluence {
     atl_log "Creating file /etc/ld.so.conf.d/confluence.conf"
     echo /usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server/ > /etc/ld.so.conf.d/confluence.conf
     sudo ldconfig
-    service collectd restart
+
     atl_log "Creating file /etc/ld.so.conf.d/confluence.conf ==> done"
 
     if [[ -d "${ATL_CONFLUENCE_INSTALL_DIR}" ]]; then
@@ -342,8 +342,8 @@ function configureSharedHome {
     local CONFLUENCE_SHARED="${ATL_APP_DATA_MOUNT}/${ATL_CONFLUENCE_SERVICE_NAME}/shared-home"
     if mountpoint -q "${ATL_APP_DATA_MOUNT}" || mountpoint -q "${CONFLUENCE_SHARED}"; then
         mkdir -p "${CONFLUENCE_SHARED}"
-        atl_ChangeFolderOwnership "${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_USER}" "${CONFLUENCE_SHARED}" >> "${ATL_LOG}"
-        su "${ATL_CONFLUENCE_USER}" -c "ln -s \"${CONFLUENCE_SHARED}\" \"${ATL_CONFLUENCE_SHARED_HOME}\"" >> "${ATL_LOG}" 2>&1
+        chown "${ATL_CONFLUENCE_USER}":"${ATL_CONFLUENCE_USER}" "${CONFLUENCE_SHARED}" >> "${ATL_LOG}"
+        [ ! -f ${ATL_CONFLUENCE_SHARED_HOME} ] || su "${ATL_CONFLUENCE_USER}" -c "ln -s \"${CONFLUENCE_SHARED}\" \"${ATL_CONFLUENCE_SHARED_HOME}\"" >> "${ATL_LOG}" 2>&1
     else
         atl_log "No mountpoint for shared home exists. Failed to create cluster.properties file."
     fi

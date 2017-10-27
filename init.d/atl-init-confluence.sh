@@ -61,7 +61,8 @@ function createInstanceStoreDirs {
     mkdir -p "${CONFLUENCE_DIR}/tmp" >> "${ATL_LOG}" 2>&1
 
     atl_log "Changing ownership of the contents of ${CONFLUENCE_DIR} to ${ATL_CONFLUENCE_USER}"
-    chown -R "${ATL_CONFLUENCE_USER}":"${ATL_CONFLUENCE_USER}" "${CONFLUENCE_DIR}"
+        atl_ChangeFolderOwnership "${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_USER}" "${CONFLUENCE_DIR}"
+
 
     atl_log "=== END:   service atl-init-confluence create-instance-store-dirs ==="
 }
@@ -72,7 +73,7 @@ function configureSharedHome {
     if mountpoint -q "${ATL_APP_DATA_MOUNT}" || mountpoint -q "${CONFLUENCE_SHARED}"; then
         atl_log "Linking ${CONFLUENCE_SHARED} to ${ATL_CONFLUENCE_SHARED_HOME}"
         mkdir -p "${CONFLUENCE_SHARED}"
-        chown -R -H "${ATL_CONFLUENCE_USER}":"${ATL_CONFLUENCE_USER}" "${CONFLUENCE_SHARED}" >> "${ATL_LOG}" 2>&1
+        atl_ChangeFolderOwnership "${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_USER}" "${CONFLUENCE_SHARED}"
         su "${ATL_CONFLUENCE_USER}" -c "ln -s \"${CONFLUENCE_SHARED}\" \"${ATL_CONFLUENCE_SHARED_HOME}\"" >> "${ATL_LOG}" 2>&1
     else
         atl_log "No mountpoint for shared home exists. Failed to create cluster.properties file."
@@ -89,7 +90,7 @@ function configureConfluenceHome {
     fi
     
     atl_log "Setting ownership of ${ATL_CONFLUENCE_HOME} to '${ATL_CONFLUENCE_USER}' user"
-    chown -R -H "${ATL_CONFLUENCE_USER}":"${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_HOME}" >> "${ATL_LOG}" 2>&1 
+    atl_ChangeFolderOwnership "${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_HOME}"
     atl_log "Done configuring ${ATL_CONFLUENCE_HOME}"
 }
 
@@ -192,7 +193,7 @@ function add_confluence_user {
 
     if [ $? -eq 0 ]; then
         if [ $(id -u ${ATL_CONFLUENCE_USER}) == ${ATL_CONFLUENCE_UID} ]; then
-            atl_log "User already exists not, skipping creation."
+            atl_log "User already exists, skipping."
             return
         else
             atl_log "User already exists, fixing UID."
@@ -203,7 +204,8 @@ function add_confluence_user {
     fi
     groupadd --gid ${ATL_CONFLUENCE_UID} ${ATL_CONFLUENCE_USER}
     useradd -m --uid ${ATL_CONFLUENCE_UID} -g ${ATL_CONFLUENCE_USER} ${ATL_CONFLUENCE_USER}
-    chown -R ${ATL_CONFLUENCE_USER}:${ATL_CONFLUENCE_USER} /home/${ATL_CONFLUENCE_USER}
+    atl_ChangeFolderOwnership "${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_USER}" "/home/${ATL_CONFLUENCE_USER}"
+
 
 }
 
@@ -258,9 +260,10 @@ EOT
 
     add_confluence_user
 
-    chown -R "${ATL_CONFLUENCE_USER}":"${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_INSTALL_DIR}"
-    chown -R "${ATL_CONFLUENCE_USER}":"${ATL_CONFLUENCE_USER}" "${ATL_APP_DATA_MOUNT}/${ATL_CONFLUENCE_SERVICE_NAME}"
-    chown -R "${ATL_CONFLUENCE_USER}":"${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_HOME}"
+    atl_ChangeFolderOwnership "${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_HOME}"
+    atl_ChangeFolderOwnership "${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_USER}" "${ATL_APP_DATA_MOUNT}/${ATL_CONFLUENCE_SERVICE_NAME}"
+    atl_ChangeFolderOwnership "${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_INSTALL_DIR}"
+
     sed -i -e "s/CONF_USER=.*/CONF_USER=${ATL_CONFLUENCE_USER}/g" ${ATL_CONFLUENCE_INSTALL_DIR}/bin/user.sh
     configureJVMMermory
     atl_log "${ATL_CONFLUENCE_SHORT_DISPLAY_NAME} installation completed"

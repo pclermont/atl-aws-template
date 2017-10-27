@@ -368,5 +368,8 @@ function atl_ChangeFolderOwnership {
     local username=$1
     local group=$2
     local folder=$3
-    find ${folder} -not -user ${username} -exec chown ${username}:${group} {}\;
+    atl_log "Changing ownership of ${folder} to ${username}"
+    find ${folder} -not -user ${username} -exec chown ${username}:${group} {} \;
+    atl_log "Changing ownership of ${folder} to ${username} completed."
+
 }
