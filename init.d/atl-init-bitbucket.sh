@@ -261,6 +261,11 @@ EOT
 
     add_bitbucket_user
 
+    for folder in ${ATL_BITBUCKET_INSTALL_DIR} ${ATL_BITBUCKET_HOME} ${ATL_BITBUCKET_SHARED_HOME} ; do
+        atl_log "Making Sure that bitbucket is using the proper user in ${folder}"
+        chown -R "${ATL_BITBUCKET_USER}":"${ATL_BITBUCKET_UID}" "${folder}"
+    done
+
     sed -i -e "s/BITBUCKET_USER=.*/BITBUCKET_USER=${ATL_BITBUCKET_USER}/g" "${ATL_BITBUCKET_INSTALL_DIR}/bin/set-bitbucket-user.sh"
 
     atl_log "Cleaning up"
