@@ -193,7 +193,7 @@ function atl_setNginxHostName {
 }
 
 function atl_configureTomcatConnector {
-    local HOST_NAME=$(atl_toLowerCase "${1}" )
+    local HOST_NAME="$(atl_toLowerCase "${1}" )"
     local DEFAULT_CONNECTOR_PORT="${2}"
     local REDIRECT_CONNECTOR_PORT="${3}"
     local USER="${4}"

@@ -332,7 +332,7 @@ function startBitbucket {
 }
 
 function configureSpringBootConnector {
-    local hostname=$(atl_toLowerCase "$1" )
+    local hostname="$(atl_toLowerCase "$1" )"
     local secure=false
     local scheme=http
     local proxyPort=80
