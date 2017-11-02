@@ -199,7 +199,7 @@ function configureDbProperties {
     local JDBC_PROPS="jdbc.driver=${1}\n"
     JDBC_PROPS+="jdbc.url=${2}\n"
     JDBC_PROPS+="jdbc.user=${3}\n"
-    JDBC_PROPS+="jdbc.passworgit stad=${4}\n"
+    JDBC_PROPS+="jdbc.password=${4}\n"
     # Command substitution will strip trailing newlines, so we need to include it after the assignment
     ATL_BITBUCKET_PROPERTIES="$(echo -e ${JDBC_PROPS})
 ${ATL_BITBUCKET_PROPERTIES}"
