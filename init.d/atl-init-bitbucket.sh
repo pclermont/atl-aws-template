@@ -45,7 +45,7 @@ function start {
     atl_log "=== BEGIN: service atl-init-bitbucket start ==="
     atl_log "Initialising ${ATL_BITBUCKET_FULL_DISPLAY_NAME}"
 
-    createBitbucketHome
+
     if [[ "x${ATL_POSTGRES_ENABLED}" == "xtrue" ]]; then
         createBitbucketDbAndRole
     elif [[ -n "${ATL_DB_NAME}" ]]; then
@@ -53,7 +53,7 @@ function start {
     fi
 
     installBitbucket
-
+    createBitbucketHome
     appendBitbucketProperties "${ATL_BITBUCKET_PROPERTIES}"
 
     appendBitbucketProperties "
@@ -168,6 +168,7 @@ function createBitbucketHome {
     mkdir -p "${ATL_APP_DATA_MOUNT}/${ATL_BITBUCKET_NAME}" >> "${ATL_LOG}" 2>&1
     chown "${ATL_BITBUCKET_USER}":"${ATL_BITBUCKET_USER}" "${ATL_BITBUCKET_HOME}" >> "${ATL_LOG}" 2>&1
     chown -R "${ATL_BITBUCKET_USER}":"${ATL_BITBUCKET_USER}" "${ATL_APP_DATA_MOUNT}/${ATL_BITBUCKET_NAME}" >> "${ATL_LOG}" 2>&1
+    rm -fr "${ATL_BITBUCKET_SHARED_HOME}"
 
     if mountpoint -q "${ATL_APP_DATA_MOUNT}" || mountpoint -q "${ATL_APP_DATA_MOUNT}/${ATL_BITBUCKET_NAME}/shared"; then
         atl_log "Linking ${ATL_BITBUCKET_SHARED_HOME} to ${ATL_APP_DATA_MOUNT}/${ATL_BITBUCKET_NAME}/shared"
