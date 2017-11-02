@@ -52,6 +52,8 @@ function start {
         configureRemoteDb
     fi
 
+    installBitbucket
+
     appendBitbucketProperties "${ATL_BITBUCKET_PROPERTIES}"
 
     appendBitbucketProperties "
@@ -69,7 +71,6 @@ hazelcast.group.name=${HAZELCAST_GROUP_NAME}
 hazelcast.group.password=${HAZELCAST_GROUP_PASSWORD}
 "
 
-    installBitbucket
     startBitbucket
 
     atl_log "=== END:   service atl-init-bitbucket start ==="
@@ -170,7 +171,7 @@ function createBitbucketHome {
 
     if mountpoint -q "${ATL_APP_DATA_MOUNT}" || mountpoint -q "${ATL_APP_DATA_MOUNT}/${ATL_BITBUCKET_NAME}/shared"; then
         atl_log "Linking ${ATL_BITBUCKET_SHARED_HOME} to ${ATL_APP_DATA_MOUNT}/${ATL_BITBUCKET_NAME}/shared"
-        su "${ATL_BITBUCKET_USER}" -c "ln -s \"${ATL_APP_DATA_MOUNT}/${ATL_BITBUCKET_NAME}/shared\" \"${ATL_BITBUCKET_SHARED_HOME}\"" >> "${ATL_LOG}" 2>&1
+        su "${ATL_BITBUCKET_USER}" -c "ln -s \"${ATL_APP_DATA_MOUNT}/${ATL_BITBUCKET_NAME}/shared\" \"${ATL_BITBUCKET_HOME}/\"" >> "${ATL_LOG}" 2>&1
     else
         atl_log "Creating ${ATL_BITBUCKET_SHARED_HOME}"
         su "${ATL_BITBUCKET_USER}" -c "mkdir -p \"${ATL_BITBUCKET_SHARED_HOME}\"" >> "${ATL_LOG}" 2>&1
