@@ -58,6 +58,7 @@ function start {
 
     appendBitbucketProperties "
 plugin.search.elasticsearch.aws.region=${PLUGIN_SEARCH_ELASTICSEARCH_AWS_REGION}
+plugin.search.elasticsearch.baseurl=${PLUGIN_SEARCH_ELASTICSEARCH_BASEURL}
 "
 
     appendBitbucketProperties "
