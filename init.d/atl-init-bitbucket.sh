@@ -56,6 +56,26 @@ function start {
         appendBitbucketProperties "${ATL_BITBUCKET_PROPERTIES}"
     fi
 
+    if [[ -n "${PLUGIN_SEARCH_ELASTICSEARCH_AWS_REGION}" ]]; then
+        appendBitbucketProperties "
+plugin.search.elasticsearch.aws.region=${PLUGIN_SEARCH_ELASTICSEARCH_AWS_REGION}
+"
+    fi
+
+    if [[ "x${HAZELCAST_NETWORK_AWS}" = "xtrue" ]]; then
+        appendBitbucketProperties "
+hazelcast.network.aws=${HAZELCAST_NETWORK_AWS}
+hazelcast.network.aws.iam.role=${HAZELCAST_NETWORK_AWS_IAM_ROLE}
+hazelcast.network.aws.region=${HAZELCAST_NETWORK_AWS_REGION}
+hazelcast.network.aws.tag.key=${HAZELCAST_NETWORK_AWS_TAG_KEY}
+hazelcast.network.aws.tag.value=${HAZELCAST_NETWORK_AWS_TAG_VALUE}
+hazelcast.network.multicast=${HAZELCAST_NETWORK_MULTICAST}
+hazelcast.group.name=${HAZELCAST_GROUP_NAME}
+hazelcast.group.password=${HAZELCAST_GROUP_PASSWORD}
+"
+
+    fi
+
     installBitbucket
     startBitbucket
 
