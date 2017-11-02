@@ -306,18 +306,7 @@ EOT
 }
 
 function isSpringBoot {
-    if [ "latest" = "${ATL_BITBUCKET_VERSION}" ]; then
-        return 0
-    fi
-    declare -a semver
-    IFS='.'; read -ra semver <<< "${ATL_BITBUCKET_VERSION}"
-    if [[ ${semver[0]} -ge 5 ]]; then
-        # 0 = true
-        return 0
-    else
-        # non-0 = false
-        return 1
-    fi
+    return 0
 }
 
 function startBitbucket {
