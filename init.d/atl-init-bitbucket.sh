@@ -52,9 +52,7 @@ function start {
         configureRemoteDb
     fi
 
-    if [[ -n "${ATL_BITBUCKET_PROPERTIES}" ]]; then
-        appendBitbucketProperties "${ATL_BITBUCKET_PROPERTIES}"
-    fi
+    appendBitbucketProperties "${ATL_BITBUCKET_PROPERTIES}"
 
     appendBitbucketProperties "
 plugin.search.elasticsearch.aws.region=${PLUGIN_SEARCH_ELASTICSEARCH_AWS_REGION}
