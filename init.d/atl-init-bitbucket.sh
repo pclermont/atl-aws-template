@@ -168,7 +168,11 @@ function createBitbucketHome {
     mkdir -p "${ATL_APP_DATA_MOUNT}/${ATL_BITBUCKET_NAME}" >> "${ATL_LOG}" 2>&1
     chown "${ATL_BITBUCKET_USER}":"${ATL_BITBUCKET_USER}" "${ATL_BITBUCKET_HOME}" >> "${ATL_LOG}" 2>&1
     chown -R "${ATL_BITBUCKET_USER}":"${ATL_BITBUCKET_USER}" "${ATL_APP_DATA_MOUNT}/${ATL_BITBUCKET_NAME}" >> "${ATL_LOG}" 2>&1
-    rm -fr "${ATL_BITBUCKET_SHARED_HOME}"
+
+    atl_log "Removing local folders in order to link to shared folders."
+    for folder in caches tmp shared ; do
+        [ -h "${ATL_BITBUCKET_HOME}/${folder}" ] || rm -fr "${ATL_BITBUCKET_HOME}/${folder}"
+    done
 
     if mountpoint -q "${ATL_APP_DATA_MOUNT}" || mountpoint -q "${ATL_APP_DATA_MOUNT}/${ATL_BITBUCKET_NAME}/shared"; then
         atl_log "Linking ${ATL_BITBUCKET_SHARED_HOME} to ${ATL_APP_DATA_MOUNT}/${ATL_BITBUCKET_NAME}/shared"
