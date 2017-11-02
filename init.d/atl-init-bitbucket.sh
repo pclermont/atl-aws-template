@@ -53,7 +53,6 @@ function start {
     fi
 
     installBitbucket
-    createBitbucketHome
     appendBitbucketProperties "${ATL_BITBUCKET_PROPERTIES}"
 
     appendBitbucketProperties "
@@ -280,6 +279,7 @@ EOT
     atl_log "Installed ${ATL_BITBUCKET_SHORT_DISPLAY_NAME} to ${ATL_BITBUCKET_INSTALL_DIR}"
 
     add_bitbucket_user
+    createBitbucketHome
 
     for folder in ${ATL_BITBUCKET_INSTALL_DIR} ${ATL_BITBUCKET_HOME} ${ATL_BITBUCKET_SHARED_HOME} ; do
         atl_log "Making Sure that bitbucket is using the proper user in ${folder}"
@@ -332,7 +332,7 @@ function startBitbucket {
 }
 
 function configureSpringBootConnector {
-    local hostname="$1" 
+    local hostname=$(atl_toLowerCase "$1" )
     local secure=false
     local scheme=http
     local proxyPort=80
