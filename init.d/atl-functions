@@ -192,6 +192,23 @@ function atl_setNginxHostName {
 " /etc/nginx/nginx.conf
 }
 
+function atl_sslKeystore_install {
+    local JRE="${1}"
+    local KEYSTORE_NAME="${2}"
+    local KEYSTORE_FILE="${3}"
+    local KEYSTORE_PASSWORD="${4}"
+
+    ${JRE}/bin/keytool -importkeystore -srcstorepass ${KEYSTORE_PASSWORD} -srckeystore ${KEYSTORE_FILE} -srcstoretype PKCS12  -deststorepass ${KEYSTORE_PASSWORD} -destkeypass ${KEYSTORE_PASSWORD} -deskeystore ${KEYSTORE_NAME} -alias tomcat
+}
+
+function atl_fetch_s3_file {
+    local BUCKET="${1}"
+    local FILE="${2}"
+    local DEST="${3}"
+
+    aws s3 cp "s3://${BUCKET}/${FILE}" "${DEST}"
+}
+
 function atl_configureTomcatConnector {
     local HOST_NAME="$(atl_toLowerCase "${1}" )"
     local DEFAULT_CONNECTOR_PORT="${2}"
