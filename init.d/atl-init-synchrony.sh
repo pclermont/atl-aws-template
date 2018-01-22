@@ -118,7 +118,7 @@ ${ATL_SYNCHRONY_STACK_SPACE} ${ATL_SYNCHRONY_MEMORY} \
 -Dcluster.interfaces=${AWS_EC2_PRIVATE_IP} \
 -Dreza.cluster.base.port=25500 \
 -Dreza.cluster.bind=${AWS_EC2_PRIVATE_IP} \
--Dreza.service.url=${ATL_SYNCHRONY_SERVICE_URL} \
+-Dreza.service.url=$(atl_toLowerCase ${ATL_SYNCHRONY_SERVICE_URL}) \
 -Dreza.context.path=/synchrony \
 -Dreza.port=8091 \
 -Dcluster.name=Synchrony-Cluster \
@@ -164,7 +164,7 @@ ${ATL_SYNCHRONY_STACK_SPACE} ${ATL_SYNCHRONY_MEMORY} \
 -Dsynchrony.cluster.bind=${AWS_EC2_PRIVATE_IP} \
 -Dcluster.interfaces=${AWS_EC2_PRIVATE_IP} \
 -Dsynchrony.cluster.base.port=25500 \
--Dsynchrony.service.url=${ATL_SYNCHRONY_SERVICE_URL} \
+-Dsynchrony.service.url=$( atl_toLowerCase ${ATL_SYNCHRONY_SERVICE_URL}) \
 -Dsynchrony.context.path=/synchrony \
 -Dsynchrony.port=8091 \
 -Dcluster.name=Synchrony-Cluster \
