@@ -1,3 +1,4 @@
+#@IgnoreInspection BashAddShebang
 # Atlassian functions used by init.d services
 
 _ATL_TEMP_DIR=$(mktemp -d)
@@ -223,7 +224,7 @@ function atl_configureTomcatConnector {
     local secure=false
     local scheme=http
     local proxyPort=80
-    if [[ "xtrue" == "x$(atl_toLowerCase ${ATL_SSL_SELF_CERT_ENABLED})" || "xtrue" == "x$(atl_toLowerCase ${ATL_SSL_PROXY})" ]]; then
+    if [[ "x" != "x$(atl_toLowerCase ${ATL_SSLKeystorePassword})" || "xtrue" == "x$(atl_toLowerCase ${ATL_SSL_PROXY})" ]]; then
         secure=true
         scheme=https
         proxyPort=443
@@ -253,6 +254,8 @@ function atl_configureTomcatConnector {
             <xsl:attribute name="scheme">${scheme}</xsl:attribute>
             <xsl:attribute name="proxyName">${HOST_NAME}</xsl:attribute>
             <xsl:attribute name="proxyPort">${proxyPort}</xsl:attribute>
+            <xsl:attribute name="SSLEnabled">true</xsl:attribute>
+            <xsl:attribute name="KeyStorePass">${ATL_SSLKeystorePassword}</xsl:attribute>
         </xsl:copy>
     </xsl:template>
 </xsl:stylesheet>
