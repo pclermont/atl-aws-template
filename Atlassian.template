@@ -27,6 +27,7 @@
         "Parameters": [
           "DBInstanceClass",
           "DBMasterUserPassword",
+          "DBSubnets",
           "DBPassword",
           "DBStorage",
           "DBStorageType",
@@ -42,7 +43,7 @@
           "Subnets",
           "KeyName",
           "CustomDnsName",
-          "SSLCertificateName"
+          "SSLCertificateId"
         ]
       }, {
         "Label": {
@@ -52,6 +53,22 @@
           "CatalinaOpts",
           "JVMMinimumMemory",
           "JVMMaximumMemory"
+        ]
+      }, {
+        "Label": {
+          "default": "Confluence (only)"
+        },
+        "Parameters": [
+          "SynchcronyClusterNodeInstanceType",
+          "SynchcronyClusterNodeMin",
+          "SynchcronyClusterNodeMax"
+        ]
+      }, {
+        "Label": {
+          "default": "Bitbucket (only)"
+        },
+        "Parameters": [
+          "BitbucketProperties"
         ]
       }],
       "ParameterLabels": {
@@ -91,6 +108,9 @@
         "DBStorageType": {
           "default": "Database storage type"
         },
+        "DBSubnets": {
+          "default": "Subnets *"
+        },
         "DBIops": {
           "default": "RDS Provisioned IOPS"
         },
@@ -103,8 +123,8 @@
         "CustomDnsName": {
           "default": "Existing DNS name (optional)"
         },
-        "SSLCertificateName": {
-          "default": "SSL Certificate Name"
+        "SSLCertificateId": {
+          "default": "SSL Certificate Id"
         },
         "Subnets": {
           "default": "Subnets *"
@@ -283,6 +303,11 @@
       "AllowedPattern": "[a-zA-Z0-9]*",
       "ConstraintDescription": "Must be at least 8 alphanumeric characters."
     },
+    "DBSubnets": {
+      "Description": "Subnets (two or more) where Database will be deployed. MUST be within the selected VPC.",
+      "Type": "List<AWS::EC2::Subnet::Id>",
+      "ConstraintDescription": "Must be a list of two or more Subnet ID's within the selected VPC."
+    },
     "DBPassword": {
       "Default": "",
       "Description": "Database user account password.",
@@ -343,11 +368,11 @@
       "Description": "Use custom existing DNS name for your JIRA Data Center instance. Please note: you must own the domain and configure it to point at the load balancer.",
       "Type": "String"
     },
-    "SSLCertificateName": {
-      "Description": "The name of your Server Certificate to use for HTTPS.  Leave blank if you don't want to set up HTTPS at this time",
+    "SSLCertificateId": {
+      "Description": "The Id of your Server Certificate to use for HTTPS.  Leave blank if you don't want to set up HTTPS at this time",
       "Type": "String",
       "MinLength": "0",
-      "MaxLength": "32",
+      "MaxLength": "64",
       "Default": ""
     },
     "Subnets": {
@@ -359,6 +384,25 @@
       "Description": "Virtual Private Cloud",
       "Type": "AWS::EC2::VPC::Id",
       "ConstraintDescription": "Must be the ID of a VPC."
+    },
+    "AdminNetwork": {
+      "Description": "CIDR for administrative access ",
+      "Type": "String",
+      "ConstraintDescription": "Must be a valid cidr network range",
+      "AllowedPattern":  "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+      "Default": "10.0.0.0/8"
+    },
+    "SSLKeystore": {
+      "Description": "Keystore file name",
+      "Type": "String"
+    },
+    "SSLKeystorePassword": {
+      "Description": "Keystore password",
+      "Type": "String"
+    },
+    "SSLKeystoreBucket": {
+      "Description": "Bucket where the SSL keystore is located",
+      "Type": "String"
     }
   },
   "Conditions": {
@@ -399,7 +443,7 @@
         {
           "Fn::Equals": [
             {
-              "Ref": "SSLCertificateName"
+              "Ref": "SSLKeystore"
             },
             ""
           ]
@@ -503,6 +547,7 @@
         "Engine": "postgres",
         "EngineVersion": "9.4.12",
         "MasterUsername": "postgres",
+        "StorageEncrypted": true,
         "MasterUserPassword": {
           "Fn::If": [
             "DoSetDBMasterUserPassword", {
@@ -532,7 +577,7 @@
           "Ref": "DBMultiAZ"
         },
         "VPCSecurityGroups": [{
-          "Ref": "SecurityGroup"
+          "Ref": "DBSecurityGroup"
         }],
         "Tags": [{
           "Key": "Name",
@@ -545,7 +590,7 @@
       "Properties": {
         "DBSubnetGroupDescription": "DBSubnetGroup",
         "SubnetIds": {
-          "Ref": "Subnets"
+          "Ref": "DBSubnets"
         }
       }
     },
@@ -576,6 +621,35 @@
                   "Action": ["ec2:DescribeInstances"],
                   "Effect": "Allow",
                   "Resource": ["*"]
+                }
+              ]
+            }
+          },
+          {
+            "PolicyName": "S3BucketFetch",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Action": ["s3:GetObject"],
+                  "Effect": "Allow",
+                  "Resource": [
+                    {
+                      "Fn::Join": [
+                        "",
+                        [
+                          "arn:aws:s3:::",
+                          {
+                            "Ref": "SSLKeystoreBucket"
+                          },
+                          "/",
+                          {
+                            "Ref": "SSLKeystore"
+                          }
+                        ]
+                      ]
+                    }
+                  ]
                 }
               ]
             }
@@ -641,7 +715,7 @@
             "Value": {
               "Ref": "AWS::StackName"
             },
-          "PropagateAtLaunch": true
+            "PropagateAtLaunch": true
           }
         ]
       }
@@ -870,107 +944,177 @@
               "/etc/atl": {
                 "content": {
                   "Fn::Join": [
-                    "",
+                    "\n",
                     [
-                      "ATL_APP_DATA_MOUNT_ENABLED=false\n",
-                      "ATL_DB_NAME=atljira\n",
-                      "ATL_DB_USER=atljira\n",
-                      "ATL_DB_PASSWORD=",
+                      "ATL_APP_DATA_MOUNT_ENABLED=false",
+                      "ATL_DB_NAME=atljira",
+                      "ATL_DB_USER=atljira",
                       {
-                        "Ref": "DBMasterUserPassword"
-                      },
-                      "\n",
-                      "ATL_DB_HOST=",
-                      {
-                        "Fn::GetAtt": [
-                          "DB",
-                          "Endpoint.Address"
+                        "Fn::Join": [
+                          "",
+                          [
+                            "ATL_DB_PASSWORD=",
+                            {
+                              "Ref": "DBMasterUserPassword"
+                            }
+                          ]
                         ]
                       },
-                      "\n",
-                      "ATL_DB_PORT=",
                       {
-                        "Fn::GetAtt": [
-                          "DB",
-                          "Endpoint.Port"
+                        "Fn::Join": [
+                          "",
+                          [
+                            "ATL_DB_HOST=",
+                            {
+                              "Fn::GetAtt": [
+                                "DB",
+                                "Endpoint.Address"
+                              ]
+                            }
+                          ]
                         ]
                       },
-                      "\n",
-                      "ATL_JDBC_DRIVER=org.postgresql.Driver\n",
-                      "ATL_JDBC_URL=jdbc:postgresql://",
                       {
-                        "Fn::GetAtt": [
-                          "DB",
-                          "Endpoint.Address"
+                        "Fn::Join": [
+                          "",
+                          [
+                            "ATL_DB_PORT=",
+                            {
+                              "Fn::GetAtt": [
+                                "DB",
+                                "Endpoint.Port"
+                              ]
+                            }
+                          ]
                         ]
                       },
-                      ":",
+                      "ATL_JDBC_DRIVER=org.postgresql.Driver",
                       {
-                        "Fn::GetAtt": [
-                          "DB",
-                          "Endpoint.Port"
+                        "Fn::Join": [
+                          "",
+                          [
+                            "ATL_JDBC_URL=jdbc:postgresql://",
+                            {
+                              "Fn::GetAtt": [
+                                "DB",
+                                "Endpoint.Address"
+                              ]
+                            },
+                            ":",
+                            {
+                              "Fn::GetAtt": [
+                                "DB",
+                                "Endpoint.Port"
+                              ]
+                            },
+                            "/atljira"
+                          ]
                         ]
                       },
-                      "/atljira\n",
-                      "ATL_JDBC_USER=atljira\n",
-                      "ATL_JDBC_PASSWORD=",
+                      "ATL_JDBC_USER=atljira",
                       {
-                        "Ref": "DBPassword"
-                      },
-                      "\n",
-                      "ATL_ENABLED_PRODUCTS=Jira\n",
-                      "ATL_ENABLED_SHARED_HOMES=\n",
-                      "ATL_JIRA_NAME=jira-software\n",
-                      "ATL_JIRA_SHORT_DISPLAY_NAME=\"JIRA SW\"\n",
-                      "ATL_JIRA_FULL_DISPLAY_NAME=\"Atlassian JIRA Software\"\n",
-                      "ATL_JIRA_INSTALL_DIR=/opt/atlassian/jira\n",
-                      "ATL_JIRA_USER=\"jira\"\n",
-                      "ATL_JIRA_CONFIG_PROPERTIES=\n",
-                      "ATL_JIRA_DB_NAME=\"atljira\"\n",
-                      "ATL_JIRA_DB_USER=\"atljira\"\n",
-                      "ATL_JIRA_HOME=\"/var/atlassian/application-data/jira\"\n",
-                      "ATL_JIRA_NGINX_PATH=/\n",
-                      "ATL_JIRA_VERSION=",
-                      {
-                        "Ref": "Version"
-                      },
-                      "\n",
-                      "ATL_POSTGRES_ENABLED=false\n",
-                      "ATL_PROXY_NAME=",
-                      {
-                        "Fn::If": [
-                          "UseCustomDnsName",
-                          {
-                            "Ref": "CustomDnsName"
-                          },
-                          {
-                            "Fn::If": [
-                              "ConfluenceProduct",
-                              {
-                                "Fn::GetAtt": [
-                                  "ConfluenceLoadBalancer",
-                                  "DNSName"
-                                ]
-                              },
-                              {
-                                "Fn::GetAtt": [
-                                  "LoadBalancer",
-                                  "DNSName"
-                                ]
-                              }
-                            ]
-                          }
+                        "Fn::Join": [
+                          "",
+                          [
+                            "ATL_JDBC_PASSWORD=",
+                            {
+                              "Ref": "DBPassword"
+                            }
+                          ]
                         ]
                       },
-                      "\n",
-                      "ATL_SSL_SELF_CERT_ENABLED=false\n",
+                      "ATL_ENABLED_PRODUCTS=Jira",
+                      "ATL_ENABLED_SHARED_HOMES=",
+                      "ATL_JIRA_NAME=jira-software",
+                      "ATL_JIRA_SHORT_DISPLAY_NAME=\"JIRA SW\"",
+                      "ATL_JIRA_FULL_DISPLAY_NAME=\"Atlassian JIRA Software\"",
+                      "ATL_JIRA_INSTALL_DIR=/opt/atlassian/jira",
+                      "ATL_JIRA_USER=\"jira\"",
+                      "ATL_JIRA_CONFIG_PROPERTIES=",
+                      "ATL_JIRA_DB_NAME=\"atljira\"",
+                      "ATL_JIRA_DB_USER=\"atljira\"",
+                      "ATL_JIRA_HOME=\"/var/atlassian/application-data/jira\"",
+                      "ATL_JIRA_NGINX_PATH=/",
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "ATL_JIRA_VERSION=",
+                            {
+                              "Ref": "Version"
+                            }
+                          ]
+                        ]
+                      },
+                      "ATL_POSTGRES_ENABLED=false",
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "ATL_PROXY_NAME=",
+                            {
+                              "Fn::If": [
+                                "UseCustomDnsName",
+                                {
+                                  "Ref": "CustomDnsName"
+                                },
+                                {
+                                  "Fn::If": [
+                                    "ConfluenceProduct",
+                                    {
+                                      "Fn::GetAtt": [
+                                        "ConfluenceLoadBalancer",
+                                        "DNSName"
+                                      ]
+                                    },
+                                    {
+                                      "Fn::GetAtt": [
+                                        "LoadBalancer",
+                                        "DNSName"
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        ]
+                      },
+                      "ATL_SSL_SELF_CERT_ENABLED=false",
                       {
                         "Fn::If": [
                           "DoSSL",
-                          "ATL_SSL_PROXY=true\n",
+                          "ATL_SSL_PROXY=true",
                           {
                             "Ref": "AWS::NoValue"
                           }
+                        ]
+                      },
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "ATL_SSLKeystorePassword=",
+                            { "Ref": "SSLKeystorePassword" }
+                          ]
+                        ]
+                      },
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "ATL_SSLKeystoreBucket=",
+                            { "Ref": "SSLKeystoreBucket" }
+                          ]
+                        ]
+                      },
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "ATL_SSLKeystore=",
+                            { "Ref": "SSLKeystore" }
+                          ]
                         ]
                       }
                     ]
@@ -1152,7 +1296,37 @@
                       {
                         "Ref": "AWS::StackName"
                       },
-                      "\n"
+                      "\n",
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "ATL_SSLKeystorePassword=",
+                            { "Ref": "SSLKeystorePassword" },
+                            "\n"
+                          ]
+                        ]
+                      },
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "ATL_SSLKeystoreBucket=",
+                            { "Ref": "SSLKeystoreBucket" },
+                            "\n"
+                          ]
+                        ]
+                      },
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "ATL_SSLKeystore=",
+                            { "Ref": "SSLKeystore" },
+                            "\n"
+                          ]
+                        ]
+                      }
                     ]
                   ]
                 }
@@ -1376,6 +1550,26 @@
                         ]
                       },
                       {
+                        "Fn::If": [
+                          "BitbucketProduct",
+                          {
+                            "Fn::Join": [
+                              "",
+                              [
+                                "PLUGIN_SEARCH_ELASTICSEARCH_BASEURL=https://",
+                                {
+                                  "Fn::GetAtt": [
+                                    "Elasticsearch",
+                                    "DomainEndpoint"
+                                  ]
+                                }
+                              ]
+                            ]
+                          },
+                          { "Ref": "AWS::NoValue" }
+                        ]
+                      },
+                      {
                         "Fn::Join": [
                           "",
                           [
@@ -1430,6 +1624,33 @@
                           {
                             "Ref": "AWS::NoValue"
                           }
+                        ]
+                      },
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "ATL_SSLKeystorePassword=",
+                            { "Ref": "SSLKeystorePassword" }
+                          ]
+                        ]
+                      },
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "ATL_SSLKeystoreBucket=",
+                            { "Ref": "SSLKeystoreBucket" }
+                          ]
+                        ]
+                      },
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "ATL_SSLKeystore=",
+                            { "Ref": "SSLKeystore" }
+                          ]
                         ]
                       }
                     ]
@@ -1508,7 +1729,7 @@
           "Ref": "ClusterNodeInstanceType"
         },
         "SecurityGroups": [{
-          "Ref": "SecurityGroup"
+          "Ref": "AppSecurityGroup"
         }],
         "UserData": {
           "Fn::Base64": {
@@ -1618,13 +1839,7 @@
             "Fn::If": [
               "BitbucketProduct",
               "7990",
-              {
-                "Fn::If": [
-                  "DoSSL",
-                  "8081",
-                  "8080"
-                ]
-              }
+              "8080"
             ]
           },
           "InstanceProtocol": "HTTP",
@@ -1637,18 +1852,21 @@
               "LoadBalancerPort": "443",
               "Protocol": "HTTPS",
               "InstancePort": { "Fn::If": [ "BitbucketProduct", "7990", "8080"]},
-              "InstanceProtocol": "HTTP",
+              "InstanceProtocol": "HTTPS",
               "PolicyNames": [
                 "JSessionIdStickiness"
               ],
               "SSLCertificateId": {
                 "Fn::Join": [
                   "", [
-                    "arn:aws:iam::", {
+                    "arn:aws:acm:",
+                    { "Ref": "AWS::Region" },
+                    ":",
+                    {
                       "Ref": "AWS::AccountId"
                     },
-                    ":server-certificate/", {
-                      "Ref": "SSLCertificateName"
+                    ":certificate/", {
+                      "Ref": "SSLCertificateId"
                     }
                   ]
                 ]
@@ -1656,6 +1874,16 @@
             }, {
               "Ref": "AWS::NoValue"
             }
+          ],
+          "Fn::If": [
+            "BitbucketProduct",
+            {
+              "LoadBalancerPort": "7999",
+              "Protocol": "TCP",
+              "InstancePort": "7999",
+              "InstanceProtocol": "TCP"
+            },
+            { "Ref": "AWS::NoValue" }
           ]
         }],
         "HealthCheck": {
@@ -1667,14 +1895,14 @@
         },
         "Scheme": "internal",
         "SecurityGroups": [{
-          "Ref": "SecurityGroup"
+          "Ref": "LBSecurityGroup"
         }],
         "Subnets": {
           "Ref": "Subnets"
         }
       }
     },
-    "SecurityGroup": {
+    "AppSecurityGroup": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
         "GroupDescription": "Security group allowing SSH and HTTP/HTTPS access",
@@ -1686,7 +1914,64 @@
             "IpProtocol": "tcp",
             "FromPort": "22",
             "ToPort": "22",
-            "CidrIp": "0.0.0.0/0"
+            "CidrIp": { "Ref": "AdminNetwork" }
+          },
+          {
+            "Fn::If": [
+              "BitbucketProduct",
+              {
+                "IpProtocol": "tcp",
+                "FromPort": "7990",
+                "ToPort": "7999",
+                "SourceSecurityGroupId": {
+                  "Ref": "LBSecurityGroup"
+                }
+              },
+              {
+                "IpProtocol": "tcp",
+                "FromPort": "8080",
+                "ToPort": "8080",
+                "SourceSecurityGroupId": {
+                  "Ref": "LBSecurityGroup"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "DBSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Security group allowing SSH and HTTP/HTTPS access",
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "5432",
+            "ToPort": "5432",
+            "SourceSecurityGroupId": {
+              "Ref": "AppSecurityGroup"
+            }
+          }
+        ]
+      }
+    },
+    "LBSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Security group allowing SSH and HTTP/HTTPS access",
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "22",
+            "ToPort": "22",
+            "CidrIp": { "Ref": "AdminNetwork" }
           },
           {
             "IpProtocol": "tcp",
@@ -1715,17 +2000,17 @@
         ]
       }
     },
-    "SecurityGroupIngress": {
+    "AppSecurityGroupIngress": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
         "GroupId": {
-          "Ref": "SecurityGroup"
+          "Ref": "AppSecurityGroup"
         },
         "IpProtocol": "-1",
         "FromPort": "-1",
         "ToPort": "-1",
         "SourceSecurityGroupId": {
-          "Ref": "SecurityGroup"
+          "Ref": "AppSecurityGroup"
         }
       }
     },
@@ -1735,11 +2020,11 @@
         "GroupId": {
           "Ref": "NFSServerSecurityGroup"
         },
-        "IpProtocol": "-1",
-        "FromPort": "-1",
-        "ToPort": "-1",
+        "IpProtocol": "tcp",
+        "FromPort": "2049",
+        "ToPort": "2049",
         "SourceSecurityGroupId": {
-          "Ref": "SecurityGroup"
+          "Ref": "AppSecurityGroup"
         }
       }
     },
@@ -2117,7 +2402,37 @@
                       },
                       "ATL_AWS_STACK_NAME=",
                       { "Ref": "AWS::StackName"},
-                      "\n"
+                      "\n",
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "ATL_SSLKeystorePassword=",
+                            { "Ref": "SSLKeystorePassword" },
+                            "\n"
+                          ]
+                        ]
+                      },
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "ATL_SSLKeystoreBucket=",
+                            { "Ref": "SSLKeystoreBucket" },
+                            "\n"
+                          ]
+                        ]
+                      },
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "ATL_SSLKeystore=",
+                            { "Ref": "SSLKeystore" },
+                            "\n"
+                          ]
+                        ]
+                      }
                     ]
                   ]
                 }
@@ -2181,7 +2496,7 @@
           "Ref": "SynchcronyClusterNodeInstanceType"
         },
         "SecurityGroups": [{
-          "Ref": "SecurityGroup"
+          "Ref": "AppSecurityGroup"
         }],
         "UserData": {
           "Fn::Base64": {
@@ -2229,7 +2544,7 @@
         },
         "SecurityGroups": [
           {
-          "Ref": "SecurityGroup"
+            "Ref": "LBSecurityGroup"
           }
         ]
       }
@@ -2245,13 +2560,12 @@
                 "DoSSL",
                 {
                   "Fn::Sub": [
-                    "arn:aws:iam::${AccountId}:server-certificate/${SSLCertificateName}",
+                    "arn:aws:acm:${Region}:${AccountId}:server-certificate/${SSLCertificateId}",
                     {
-                      "AccountId": {
-                        "Ref": "AWS::AccountId"
-                      },
-                      "SSLCertificateName": {
-                        "Ref": "SSLCertificateName"
+                      "AccountId": { "Ref": "AWS::AccountId" },
+                      "Region": { "Ref": "AWS::Region" },
+                      "SSLCertificateId": {
+                        "Ref": "SSLCertificateId"
                       }
                     }
                   ]
@@ -2382,7 +2696,6 @@
         ]
       }
     }
-
   },
   "Outputs": {
     "JIRAURL": {
