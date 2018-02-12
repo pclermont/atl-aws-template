@@ -254,8 +254,6 @@ function atl_configureTomcatConnector {
             <xsl:attribute name="scheme">${scheme}</xsl:attribute>
             <xsl:attribute name="proxyName">${HOST_NAME}</xsl:attribute>
             <xsl:attribute name="proxyPort">${proxyPort}</xsl:attribute>
-            <xsl:attribute name="SSLEnabled">true</xsl:attribute>
-            <xsl:attribute name="KeyStorePass">${ATL_SSLKeystorePassword}</xsl:attribute>
         </xsl:copy>
     </xsl:template>
 </xsl:stylesheet>
@@ -312,6 +310,8 @@ function atl_addRedirectConnectorServerXml {
                    useBodyEncodingForURI="true"
                    compression="on"
                    compressableMimeType="text/html,text/xml,text/plain,text/css,application/json,application/javascript,application/x-javascript" />
+                   SSLEnabled=true
+                   KeyStorePass="${ATL_SSLKeystorePassword}"
         </xsl:copy>
     </xsl:template>
 </xsl:stylesheet>
