@@ -310,8 +310,6 @@ function atl_addRedirectConnectorServerXml {
                    useBodyEncodingForURI="true"
                    compression="on"
                    compressableMimeType="text/html,text/xml,text/plain,text/css,application/json,application/javascript,application/x-javascript" />
-                   SSLEnabled=true
-                   KeyStorePass="${ATL_SSLKeystorePassword}"
         </xsl:copy>
     </xsl:template>
 </xsl:stylesheet>
