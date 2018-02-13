@@ -45,6 +45,8 @@ function start {
     atl_log "=== BEGIN:  service atl-init-40-products start ==="
     atl_log "Initialising enabled Atlassian products"
 
+    fixTimeZone
+
     disableThisService
 
     if [[ "xtrue" == "x$(atl_toLowerCase ${ATL_NGINX_ENABLED})" ]]; then
@@ -67,6 +69,11 @@ function start {
     fi
 
     atl_log "=== END:    service atl-init-40-products start ==="
+}
+
+function fixTimeZone {
+    rm /etc/localtime
+    ln -s /usr/share/zoneinfo/America/Montreal /etc/localtime
 }
 
 function disableThisService {
