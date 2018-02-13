@@ -37,6 +37,7 @@ function start {
     atl_log "=== BEGIN: service atl-init-jira start ==="
     atl_log "Initialising ${ATL_JIRA_FULL_DISPLAY_NAME}"
 
+    installBNCJiraDependencies
     installJIRA
 
     if [[ -n "${ATL_PROXY_NAME}" ]]; then
@@ -51,6 +52,10 @@ function start {
     goJIRA
 
     atl_log "=== END:   service atl-init-jira start ==="
+}
+
+function installBNCJiraDependencies {
+    yum -y install google-chrome mesa-libOSMesa mesa-libOSMesa-devel gnu-free-sans-fonts
 }
 
 function add_jira_user {
