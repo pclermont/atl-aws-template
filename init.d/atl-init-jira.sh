@@ -327,6 +327,13 @@ function installJIRA {
     sed -i -e "s/JIRA_USER=.*/JIRA_USER=${ATL_JIRA_USER}/g" ${ATL_JIRA_INSTALL_DIR}/bin/user.sh
 
     configureJVMMermory
+
+    if [[ -n "${ATL_SSLKeystore}" ]] ; then
+        atl_fetch_s3_file "${ATL_SSLKeystoreBucket}" "${ATL_SSLKeystore}" "/root/"
+        mv /root/${ATL_SSLKeystore} ${ATL_JIRA_USER}/.keystore
+        atl_sslKeystore_install "${ATL_JIRA_INSTALL_DIR}/jre" "jira" "${ATL_JIRA_USER}/.keystore" "${ATL_SSLKeystorePassword}"
+    fi
+
     atl_log "${ATL_JIRA_SHORT_DISPLAY_NAME} installation completed"
 }
 

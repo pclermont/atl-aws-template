@@ -302,6 +302,13 @@ EOT
     chkconfig "${ATL_BITBUCKET_SERVICE_NAME}" reset >> "${ATL_LOG}" 2>&1
     atl_log "Done creating dependency between atl-init-20-instance-store and ${ATL_BITBUCKET_SERVICE_NAME} services"
 
+    if [[ -n "${ATL_SSLKeystore}" ]] ; then
+        atl_fetch_s3_file "${ATL_SSLKeystoreBucket}" "${ATL_SSLKeystore}" "/root/"
+        mv /root/${ATL_SSLKeystore} ${ATL_BITBUCKET_USER}/.keystore
+        atl_sslKeystore_install "${ATL_BITBUCKET_INSTALL_DIR}/jre" "bitbucket" "${ATL_BITBUCKET_USER}/.keystore" "${ATL_SSLKeystorePassword}"
+    fi
+
+
     atl_log "${ATL_BITBUCKET_SHORT_DISPLAY_NAME} installation completed"
 }
 

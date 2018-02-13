@@ -260,7 +260,8 @@ EOT
 
     if [[ -n "${ATL_SSLKeystore}" ]] ; then
         atl_fetch_s3_file "${ATL_SSLKeystoreBucket}" "${ATL_SSLKeystore}" "/root/"
-        atl_sslKeystore_install "${ATL_CONFLUENCE_INSTALL_DIR}/jre" "confluence" "/root/${ATL_SSLKeystore}" "${ATL_SSLKeystorePassword}"
+        mv /root/${ATL_SSLKeystore} ${ATL_CONFLUENCE_USER}/.keystore
+        atl_sslKeystore_install "${ATL_CONFLUENCE_INSTALL_DIR}/jre" "confluence" "${ATL_CONFLUENCE_USER}/.keystore" "${ATL_SSLKeystorePassword}"
     fi
 
     add_confluence_user
