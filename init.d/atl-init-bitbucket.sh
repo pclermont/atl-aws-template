@@ -281,7 +281,7 @@ EOT
     add_bitbucket_user
     createBitbucketHome
 
-    for folder in ${ATL_BITBUCKET_INSTALL_DIR} ${ATL_BITBUCKET_HOME} ${ATL_BITBUCKET_SHARED_HOME} ; do
+    for folder in ${ATL_BITBUCKET_INSTALL_DIR} ${ATL_BITBUCKET_HOME} ${ATL_BITBUCKET_SHARED_HOME} /opt/atlassian /var/atlassian ; do
         atl_log "Making Sure that bitbucket is using the proper user in ${folder}"
         chown -R "${ATL_BITBUCKET_USER}":"${ATL_BITBUCKET_UID}" "${folder}"
     done

@@ -144,6 +144,8 @@ function configureJIRAHome {
     chown -R -H "${ATL_JIRA_USER}":"${ATL_JIRA_USER}" "${ATL_JIRA_HOME}" >> "${ATL_LOG}" 2>&1
     atl_log "Setting ownership of ${ATL_JIRA_INSTALL_DIR} to '${ATL_JIRA_USER}' user"
     chown -R -H "${ATL_JIRA_USER}":"${ATL_JIRA_USER}" "${ATL_JIRA_INSTALL_DIR}" >> "${ATL_LOG}" 2>&1
+    chown -R -H "${ATL_JIRA_USER}":"${ATL_JIRA_UID}" "/opt/atlassian" >> "${ATL_LOG}" 2>&1
+    chown -R -H "${ATL_JIRA_USER}":"${ATL_JIRA_UID}" "/var/atlassian" >> "${ATL_LOG}" 2>&1
 
     configureSharedHome
 

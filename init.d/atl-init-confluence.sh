@@ -269,6 +269,8 @@ EOT
     atl_ChangeFolderOwnership "${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_HOME}"
     atl_ChangeFolderOwnership "${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_USER}" "${ATL_APP_DATA_MOUNT}/${ATL_CONFLUENCE_SERVICE_NAME}"
     atl_ChangeFolderOwnership "${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_INSTALL_DIR}"
+    atl_ChangeFolderOwnership "${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_USER}" "/opt/atlassian"
+    atl_ChangeFolderOwnership "${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_USER}" "/var/atlassian"
 
     sed -i -e "s/CONF_USER=.*/CONF_USER=${ATL_CONFLUENCE_USER}/g" ${ATL_CONFLUENCE_INSTALL_DIR}/bin/user.sh
     configureJVMMermory
