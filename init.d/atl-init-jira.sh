@@ -139,13 +139,14 @@ EOT
 
 function configureJIRAHome {
     atl_log "Configuring ${ATL_JIRA_HOME}"
+
     mkdir -p "${ATL_JIRA_HOME}" >> "${ATL_LOG}" 2>&1
-    atl_log "Setting ownership of ${ATL_JIRA_HOME} to '${ATL_JIRA_USER}' user"
-    chown -R -H "${ATL_JIRA_USER}":"${ATL_JIRA_USER}" "${ATL_JIRA_HOME}" >> "${ATL_LOG}" 2>&1
-    atl_log "Setting ownership of ${ATL_JIRA_INSTALL_DIR} to '${ATL_JIRA_USER}' user"
-    chown -R -H "${ATL_JIRA_USER}":"${ATL_JIRA_USER}" "${ATL_JIRA_INSTALL_DIR}" >> "${ATL_LOG}" 2>&1
-    chown -R -H "${ATL_JIRA_USER}":"${ATL_JIRA_UID}" "/opt/atlassian" >> "${ATL_LOG}" 2>&1
-    chown -R -H "${ATL_JIRA_USER}":"${ATL_JIRA_UID}" "/var/atlassian" >> "${ATL_LOG}" 2>&1
+
+    for folder in ${ATL_JIRA_HOME} ${ATL_JIRA_INSTALL_DIR} /opt/atlassian /var/atlassian /home/jira ${ATL_APP_DATA_MOUNT}/jira;
+    do
+        atl_log "Setting ownership of ${folder} to '${ATL_JIRA_USER}' user"
+        chown -R -H "${ATL_JIRA_USER}":"${ATL_JIRA_USER}" "${folder}" >> "${ATL_LOG}" 2>&1
+    done
 
     configureSharedHome
 
