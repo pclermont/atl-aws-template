@@ -258,11 +258,11 @@ EOT
     atl_log "Cleaning up"
     rm -rf "$(atl_tempDir)"/installer* >> "${ATL_LOG}" 2>&1
 
-    if [[ -n "${ATL_SSLKeystore}" ]] ; then
-        atl_fetch_s3_file "${ATL_SSLKeystoreBucket}" "${ATL_SSLKeystore}" "/root/"
-        mv /root/${ATL_SSLKeystore} ${ATL_CONFLUENCE_USER}/.keystore
-        atl_sslKeystore_install "${ATL_CONFLUENCE_INSTALL_DIR}/jre" "confluence" "${ATL_CONFLUENCE_USER}/.keystore" "${ATL_SSLKeystorePassword}"
-    fi
+#    if [[ -n "${ATL_SSLKeystore}" ]] ; then
+#        atl_fetch_s3_file "${ATL_SSLKeystoreBucket}" "${ATL_SSLKeystore}" "/root/"
+#        mv /root/${ATL_SSLKeystore} ${ATL_CONFLUENCE_USER}/.keystore
+#        atl_sslKeystore_install "${ATL_CONFLUENCE_INSTALL_DIR}/jre" "confluence" "${ATL_CONFLUENCE_USER}/.keystore" "${ATL_SSLKeystorePassword}"
+#    fi
 
     add_confluence_user
 
