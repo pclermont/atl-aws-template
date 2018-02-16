@@ -260,7 +260,6 @@ function atl_configureTomcatConnector {
 EOT
     local SERVER_TMP="/tmp/server.xml.tmp"
 
-    set +C
     if su "${USER}" -c "xsltproc -o \"${SERVER_TMP}\" \"$(atl_tempDir)/server.xslt\" \"${SERVER_XML}\""; then
         if $secure ; then
             atl_addRedirectConnectorServerXml "${USER}" "${SERVER_TMP}" "${REDIRECT_CONNECTOR_PORT}"
