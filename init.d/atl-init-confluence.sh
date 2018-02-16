@@ -14,6 +14,7 @@ function start {
     atl_log "Initialising ${ATL_CONFLUENCE_FULL_DISPLAY_NAME}"
 
     installConfluence
+    configureJVMMermory
     if [[ "xtrue" == "x$(atl_toLowerCase ${ATL_NGINX_ENABLED})" ]]; then
         configureNginx
     elif [[ -n "${ATL_PROXY_NAME}" ]]; then
@@ -31,6 +32,15 @@ function start {
     goCONF
 
     atl_log "=== END:   service atl-init-confluence start ==="
+}
+
+function configureJVMMermory {
+    atl_log "Configuring JVM Memory for ${ATL_CONFLUENCE_SHORT_DISPLAY_NAME}"
+
+    sed -i -e "s/\(.*\)-Xms1024m\(.*\)/\1-Xms${ATL_JVM_MINIMUM_MEMORY}\2/g" ${ATL_CONFLUENCE_INSTALL_DIR}/bin/setenv.sh
+    sed -i -e "s/\(.*\)-Xmx1024m\(.*\)/\1-Xms${ATL_JVM_MAXIMUM_MEMORY}\2/g" ${ATL_CONFLUENCE_INSTALL_DIR}/bin/setenv.sh
+
+    atl_log "Configuring JVM Memory of ${ATL_CONFLUENCE_SHORT_DISPLAY_NAME} Done."
 }
 
 function configureConfluenceEnvironmentVariables (){
