@@ -49,7 +49,12 @@ function start {
         configureRemoteDb
     fi
 
+    find ${ATL_APP_DATA_MOUNT}/jira \! -user ${ATL_JIRA_USER} -maxdepth 3 -exec chown -H "${ATL_JIRA_USER}":"${ATL_JIRA_USER}" {} \;
+
     goJIRA
+
+    find ${ATL_APP_DATA_MOUNT}/jira \! -user ${ATL_JIRA_USER} -exec chown -H "${ATL_JIRA_USER}":"${ATL_JIRA_USER}" {} \;
+
 
     atl_log "=== END:   service atl-init-jira start ==="
 }
@@ -142,7 +147,7 @@ function configureJIRAHome {
 
     mkdir -p "${ATL_JIRA_HOME}" >> "${ATL_LOG}" 2>&1
 
-    for folder in ${ATL_JIRA_HOME} ${ATL_JIRA_INSTALL_DIR} /opt/atlassian /var/atlassian /home/jira ${ATL_APP_DATA_MOUNT}/jira;
+    for folder in ${ATL_JIRA_HOME} ${ATL_JIRA_INSTALL_DIR} /opt/atlassian /var/atlassian /home/jira ;
     do
         atl_log "Setting ownership of ${folder} to '${ATL_JIRA_USER}' user"
         chown -R -H "${ATL_JIRA_USER}":"${ATL_JIRA_USER}" "${folder}" >> "${ATL_LOG}" 2>&1
