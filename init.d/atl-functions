@@ -258,29 +258,24 @@ function atl_configureTomcatConnector {
     </xsl:template>
 </xsl:stylesheet>
 EOT
-    local SERVER_TMP="${SERVER_XML_PATH}/server.xml.tmp"
-    set -C
-    if  >"${SERVER_TMP}"; then
-        set +C
-        chown "${USER}:${USER}" "${SERVER_TMP}" >> "${ATL_LOG}" 2>&1
-        if su "${USER}" -c "xsltproc -o \"${SERVER_TMP}\" \"$(atl_tempDir)/server.xslt\" \"${SERVER_XML}\""; then
-            if $secure ; then
-                atl_addRedirectConnectorServerXml "${USER}" "${SERVER_TMP}" "${REDIRECT_CONNECTOR_PORT}"
-            fi
+    local SERVER_TMP="/tmp/server.xml.tmp"
 
-            if mv -f "${SERVER_TMP}" "${SERVER_XML}" >> "${ATL_LOG}" 2>&1; then
-                atl_log "Updated server.xml for host name change to ${HOST_NAME}, secure=${secure}, scheme=${scheme}, proxyPort=${proxyPort}"
-            else
-                atl_log "Updating ${SERVER_XML} failed"
-            fi
+    set +C
+    if su "${USER}" -c "xsltproc -o \"${SERVER_TMP}\" \"$(atl_tempDir)/server.xslt\" \"${SERVER_XML}\""; then
+        if $secure ; then
+            atl_addRedirectConnectorServerXml "${USER}" "${SERVER_TMP}" "${REDIRECT_CONNECTOR_PORT}"
+        fi
+
+        if mv -f "${SERVER_TMP}" "${SERVER_XML}" >> "${ATL_LOG}" 2>&1; then
+            atl_log "Updated server.xml for host name change to ${HOST_NAME}, secure=${secure}, scheme=${scheme}, proxyPort=${proxyPort}"
         else
-            atl_log "Updating server.xml failed. Skipping."
+            atl_log "Updating ${SERVER_XML} failed"
         fi
     else
-        set +C
+        atl_log "Updating server.xml failed. Skipping."
     fi
 
-    if $secure ; then        
+    if $secure ; then
         atl_transformWebXml "${USER}" "${WEB_XML}"
     fi
 }
