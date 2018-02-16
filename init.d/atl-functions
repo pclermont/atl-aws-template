@@ -265,7 +265,7 @@ EOT
         chown "${USER}:${USER}" "${SERVER_TMP}" >> "${ATL_LOG}" 2>&1
         if su "${USER}" -c "xsltproc -o \"${SERVER_TMP}\" \"$(atl_tempDir)/server.xslt\" \"${SERVER_XML}\""; then
             if $secure ; then
-                atl_addRedirectConnectorServerXml "${USER}" "${SERVER_TMP}"
+                atl_addRedirectConnectorServerXml "${USER}" "${SERVER_TMP}" "${REDIRECT_CONNECTOR_PORT}"
             fi
 
             if mv -f "${SERVER_TMP}" "${SERVER_XML}" >> "${ATL_LOG}" 2>&1; then
@@ -288,6 +288,7 @@ EOT
 function atl_addRedirectConnectorServerXml {
     local USER="${1}"
     local SERVER_XML="${2}"
+    local REDIRECT_CONNECTOR_PORT="${3}"
     cat <<EOT | su "${USER}" -c "tee \"$(atl_tempDir)/server.xslt\"" >> "${ATL_LOG}" 2>&1
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     <xsl:output omit-xml-declaration="yes" indent="yes"/>
@@ -310,6 +311,8 @@ function atl_addRedirectConnectorServerXml {
                    useBodyEncodingForURI="true"
                    compression="on"
                    compressableMimeType="text/html,text/xml,text/plain,text/css,application/json,application/javascript,application/x-javascript" />
+                   SSLEnabled=true</xsl:attribute>
+            <xsl:attribute name="KeyStorePass">${ATL_SSLKeystorePassword}</xsl:attribute>
         </xsl:copy>
     </xsl:template>
 </xsl:stylesheet>
