@@ -39,12 +39,12 @@ function start {
 
     installBNCJiraDependencies
     installJIRA
+    configureJIRAHome
 
     if [[ -n "${ATL_PROXY_NAME}" ]]; then
         updateHostName "${ATL_PROXY_NAME}"
     fi
 
-    configureJIRAHome
     if [[ -n "${ATL_DB_NAME}" ]]; then
         configureRemoteDb
     fi
