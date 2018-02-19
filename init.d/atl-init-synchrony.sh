@@ -353,6 +353,11 @@ function configureSharedHome {
 # prepare Confluence Home
 function configureConfluenceHome {
     atl_log "Configuring ${ATL_CONFLUENCE_HOME}"
+    for folder in ${ATL_CONFLUENCE_HOME} ${ATL_CONFLUENCE_INSTALL_DIR} /opt/atlassian /var/atlassian /home/confluence ;
+    do
+        atl_log "Setting ownership of ${folder} to '${ATL_JIRA_USER}' user"
+        chown -R -H "${ATL_JIRA_USER}":"${ATL_JIRA_USER}" "${folder}" >> "${ATL_LOG}" 2>&1
+    done
     mkdir -p "${ATL_CONFLUENCE_HOME}" >> "${ATL_LOG}" 2>&1
 
     if [[ "x${ATL_CONFLUENCE_DATA_CENTER}" = "xtrue" ]]; then
