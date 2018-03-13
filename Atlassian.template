@@ -144,52 +144,9 @@
       "Type": "Number",
       "Default": "1"
     },
-    "CreateBucket": {
-      "Description": "Set to true to create the S3 bucket within this stack, must be used in conjunction with ESBucketName",
+    "ElasticSearchEndpoint": {
       "Type": "String",
-      "Default": "true",
-      "AllowedValues": [
-        "true",
-        "false"
-      ],
-      "ConstraintDescription": "Must be 'true' or 'false'."
-    },
-    "ElasticsearchInstanceType": {
-      "Type": "String",
-      "Default": "m4.xlarge.elasticsearch",
-      "AllowedValues": [
-        "m4.large.elasticsearch",
-        "m4.xlarge.elasticsearch",
-        "m4.2xlarge.elasticsearch",
-        "r4.large.elasticsearch",
-        "r4.xlarge.elasticsearch",
-        "r4.2xlarge.elasticsearch",
-        "r4.4xlarge.elasticsearch",
-        "r4.8xlarge.elasticsearch"
-      ],
-      "ConstraintDescription": "Must be an Elasticsearch instance type in the M3, R3 or I2 family."
-    },
-    "ESBucketName": {
-      "Type": "String",
-      "Default": "",
-      "Description": "Name of a new, or existing, S3 bucket configured for Elasticsearch snapshots",
-      "ConstraintDescription": "Must contain only lowercase letters, numbers and hyphens (-).",
-      "AllowedPattern": "[a-z0-9-]*"
-    },
-    "ESDiskIOPS": {
-      "Type": "Number",
-      "Description": "Must be in the range of 1000 - 30000 and a multiple of 1000. This value is only used with Provisioned IOPS. Note: The ratio of IOPS per allocated-storage must be between 3.00 and 10.00.",
-      "Default": "1000",
-      "MinValue": "1000",
-      "MaxValue": "30000"
-    },
-    "ESDiskSize": {
-      "Type": "Number",
-      "Description": "Elasticsearch node storage size in gigabytes (Gib) (100 - 16384)",
-      "Default": "100",
-      "MinValue": "100",
-      "MaxValue": "16384",
-      "ConstraintDescription": "Must be in the range 100 - 16384."
+      "Default": ""
     },
     "BitbucketProperties": {
       "Type": "CommaDelimitedList",
@@ -204,6 +161,7 @@
         "c4.2xlarge",
         "c4.4xlarge",
         "c4.8xlarge",
+        "c5.2xlarge",
         "i2.xlarge",
         "i2.2xlarge",
         "i2.4xlarge",
@@ -398,7 +356,8 @@
     },
     "SSLKeystorePassword": {
       "Description": "Keystore password",
-      "Type": "String"
+      "Type": "String",
+      "NoEcho": "true"
     },
     "SSLKeystoreBucket": {
       "Description": "Bucket where the SSL keystore is located",
@@ -496,16 +455,6 @@
             "Confluence"
           ]
         }
-      ]
-    },
-
-    "CreateESBucket": {
-      "Fn::And": [
-        { "Fn::Equals": [
-          { "Ref": "CreateBucket" },
-          "true"
-        ]},
-        { "Condition": "BitbucketProduct" }
       ]
     },
     "isNotVersion4X": {
@@ -716,6 +665,11 @@
               "Ref": "AWS::StackName"
             },
             "PropagateAtLaunch": true
+          },
+          {
+            "Key": "Transit",
+            "Value": "Steve Qui Paye",
+            "PropagateAtLaunch": true
           }
         ]
       }
@@ -743,41 +697,55 @@
               "/etc/sysconfig/atl": {
                 "content": {
                   "Fn::Join": [
-                    "",
+                    "\n",
                     [
-                      "ATL_LOG=/var/log/atl.log\n",
-                      "ATL_APP_DATA_MOUNT_ENABLED=true\n",
-                      "ATL_APP_DATA_BLOCK_DEVICE=/dev/xvdf\n",
-                      "ATL_APP_DATA_MOUNT=\"/media/atl\"\n",
-                      "ATL_APP_DATA_DIR=\"/var/atlassian/application-data\"\n",
-                      "ATL_APP_DATA_FS_TYPE=\"zfs\"\n",
-                      "ATL_JVM_MINIMUM_MEMORY=\"",
+                      "ATL_LOG=/var/log/atl.log",
+                      "ATL_APP_DATA_MOUNT_ENABLED=true",
+                      "ATL_APP_DATA_BLOCK_DEVICE=/dev/xvdf",
+                      "ATL_APP_DATA_MOUNT=\"/media/atl\"",
+                      "ATL_APP_DATA_DIR=\"/var/atlassian/application-data\"",
+                      "ATL_APP_DATA_FS_TYPE=\"zfs\"",
                       {
-                        "Ref": "JVMMinimumMemory"
+                        "Fn::Join": [
+                          "",
+                          [
+                            "ATL_JVM_MINIMUM_MEMORY=\"",
+                            {
+                              "Ref": "JVMMinimumMemory"
+                            },
+                            "m\""
+                          ]
+                        ]
                       },
-                      "m\"\n",
-                      "ATL_JVM_MAXIMUM_MEMORY=\"",
                       {
-                        "Ref": "JVMMaximumMemory"
+                        "Fn::Join": [
+                          "",
+                          [
+                            "ATL_JVM_MAXIMUM_MEMORY=\"",
+                            {
+                              "Ref": "JVMMaximumMemory"
+                            },
+                            "m\""
+                          ]
+                        ]
                       },
-                      "m\"\n",
-                      "ATL_INSTANCE_STORE_BLOCK_DEVICE=\"/dev/xvdb\"\n",
-                      "ATL_INSTANCE_STORE_MOUNT=\"/media/ephemeral0\"\n",
-                      "ATL_APP_NFS_SERVER=false\n",
-                      "ATL_RELEASE_S3_BUCKET=atlassian-software\n",
-                      "ATL_RELEASE_S3_PATH=\"releases\"\n",
-                      "ATL_HOST_NAME=\n",
-                      "ATL_POSTGRES_ENABLED=true\n",
-                      "ATL_NGINX_ENABLED=false\n",
-                      "ATL_SSL_SELF_CERT_ENABLED=false\n",
-                      "ATL_SSL_SELF_CERT_COUNTRY=US\n",
-                      "ATL_SSL_SELF_CERT_STATE=CA\n",
-                      "ATL_SSL_SELF_CERT_LOCALE=\"San Francisco\"\n",
-                      "ATL_SSL_SELF_CERT_ORG=\"An Atlassian Customer\"\n",
-                      "ATL_SSL_SELF_CERT_ORG_UNIT=\"An Atlassian Customer's Team\"\n",
-                      "ATL_SSL_SELF_CERT_EMAIL_ADDRESS=sales@atlassian.com\n",
-                      "ATL_SSL_SELF_CERT_PATH=/etc/nginx/ssl/self-ssl.crt\n",
-                      "ATL_SSL_SELF_CERT_KEY_PATH=/etc/nginx/ssl/self-ssl.key\n"
+                      "ATL_INSTANCE_STORE_BLOCK_DEVICE=\"/dev/xvdb\"",
+                      "ATL_INSTANCE_STORE_MOUNT=\"/media/ephemeral0\"",
+                      "ATL_APP_NFS_SERVER=false",
+                      "ATL_RELEASE_S3_BUCKET=atlassian-software",
+                      "ATL_RELEASE_S3_PATH=\"releases\"",
+                      "ATL_HOST_NAME=",
+                      "ATL_POSTGRES_ENABLED=true",
+                      "ATL_NGINX_ENABLED=false",
+                      "ATL_SSL_SELF_CERT_ENABLED=false",
+                      "ATL_SSL_SELF_CERT_COUNTRY=US",
+                      "ATL_SSL_SELF_CERT_STATE=CA",
+                      "ATL_SSL_SELF_CERT_LOCALE=\"San Francisco\"",
+                      "ATL_SSL_SELF_CERT_ORG=\"An Atlassian Customer\"",
+                      "ATL_SSL_SELF_CERT_ORG_UNIT=\"An Atlassian Customer's Team\"",
+                      "ATL_SSL_SELF_CERT_EMAIL_ADDRESS=sales@atlassian.com",
+                      "ATL_SSL_SELF_CERT_PATH=/etc/nginx/ssl/self-ssl.crt",
+                      "ATL_SSL_SELF_CERT_KEY_PATH=/etc/nginx/ssl/self-ssl.key"
                     ]
                   ]
                 }
@@ -1155,12 +1123,7 @@
                             "LoadBalancerName": {
                               "Fn::If": [
                                 "ConfluenceProduct",
-                                {
-                                  "Fn::GetAtt": [
-                                    "ConfluenceLoadBalancer",
-                                    "DNSName"
-                                  ]
-                                },
+                                { "Ref": "CustomDnsName" },
                                 ""
                               ]
                             }
@@ -1221,7 +1184,7 @@
                       "ATL_CONFLUENCE_FULL_DISPLAY_NAME=\"Atlassian Confluence\"\n",
                       "ATL_CONFLUENCE_USER=confluence\n",
                       "ATL_CONFLUENCE_CONFIG_PROPERTIES=\n",
-                      "ATL_CONFLUENCE_DB_NAME==\"confluence\"\n",
+                      "ATL_CONFLUENCE_DB_NAME=\"confluence\"\n",
                       "ATL_CONFLUENCE_VERSION=",
                       {
                         "Ref": "Version"
@@ -1557,12 +1520,7 @@
                               "",
                               [
                                 "PLUGIN_SEARCH_ELASTICSEARCH_BASEURL=https://",
-                                {
-                                  "Fn::GetAtt": [
-                                    "Elasticsearch",
-                                    "DomainEndpoint"
-                                  ]
-                                }
+                                { "Ref": "ElasticSearchEndpoint" }
                               ]
                             ]
                           },
@@ -1724,7 +1682,7 @@
         "KeyName": {
           "Ref": "KeyName"
         },
-        "ImageId": "ami-5ac17f3e",
+        "ImageId": "ami-9c0783f8",
         "InstanceType": {
           "Ref": "ClusterNodeInstanceType"
         },
@@ -1759,61 +1717,6 @@
             ]
           }
         }
-      }
-    },
-    "Elasticsearch": {
-      "Condition": "BitbucketProduct",
-      "Type": "AWS::Elasticsearch::Domain",
-      "Properties": {
-        "EBSOptions": {
-          "EBSEnabled": "True",
-          "Iops" : { "Ref": "ESDiskIOPS" },
-          "VolumeSize" : { "Ref": "ESDiskSize" },
-          "VolumeType" : "io1"
-        },
-        "ElasticsearchVersion": "2.3",
-        "ElasticsearchClusterConfig": {
-          "InstanceType": { "Ref": "ElasticsearchInstanceType" }
-        },
-        "AccessPolicies":{
-          "Version": "2012-10-17",
-          "Statement": [{
-            "Effect": "Allow",
-            "Principal": {
-              "AWS": {
-                "Fn::GetAtt": [
-                  "ClusterNodeRole",
-                  "Arn"
-                ]}
-            },
-            "Action": "es:*",
-            "Resource": "*"
-          }]
-        },
-        "Tags": [
-          {
-            "Key": "Name",
-            "Value": "Bitbucket Elasticsearch cluster"
-          },
-          {
-            "Key": "Application",
-            "Value": { "Ref": "AWS::StackId" }
-          }
-        ]
-      }
-    },
-    "ElasticsearchBucket": {
-      "Condition": "CreateESBucket",
-      "Type": "AWS::S3::Bucket",
-      "Properties":{
-        "BucketName": { "Ref": "ESBucketName" },
-        "Tags": [
-          {
-            "Key": "Cluster",
-            "Value": { "Ref": "AWS::StackName" }
-          }
-
-        ]
       }
     },
     "LoadBalancer": {
@@ -1852,7 +1755,7 @@
               "LoadBalancerPort": "443",
               "Protocol": "HTTPS",
               "InstancePort": { "Fn::If": [ "BitbucketProduct", "7990", "8080"]},
-              "InstanceProtocol": "HTTPS",
+              "InstanceProtocol": "HTTP",
               "PolicyNames": [
                 "JSessionIdStickiness"
               ],
@@ -1874,18 +1777,19 @@
             }, {
               "Ref": "AWS::NoValue"
             }
-          ],
-          "Fn::If": [
-            "BitbucketProduct",
-            {
-              "LoadBalancerPort": "7999",
-              "Protocol": "TCP",
-              "InstancePort": "7999",
-              "InstanceProtocol": "TCP"
-            },
-            { "Ref": "AWS::NoValue" }
-          ]
-        }],
+          ]},
+          {
+            "Fn::If": [
+              "BitbucketProduct",
+              {
+                "LoadBalancerPort": "7999",
+                "Protocol": "TCP",
+                "InstancePort": "7999",
+                "InstanceProtocol": "TCP"
+              },
+              { "Ref": "AWS::NoValue" }
+            ]
+          }],
         "HealthCheck": {
           "Target": { "Fn::If": [ "BitbucketProduct", "HTTP:7990/status", "TCP:8080"]},
           "Timeout": "29",
@@ -2280,20 +2184,20 @@
                     [
                       "ATL_SYNCHRONY_SERVICE_URL=",
                       { "Fn::Sub" : [
-                        "${Protocol}://${LoadBalancerName}/synchrony/v1",
-                        {
-                          "Protocol": {
+                          "${Protocol}://${LoadBalancerName}/synchrony/v1",
+                          {
+                            "Protocol": {
                             "Fn::If": [
                               "DoSSL",
                               "https",
-                              "http"]
+                              "http"
+                            ]
                           },
-                          "LoadBalancerName": {
-                            "Fn::GetAtt": [
-                              "ConfluenceLoadBalancer",
-                              "DNSName"
-                            ]}
-                        }]
+                            "LoadBalancerName": {
+                              "Ref": "CustomDnsName"
+                            }
+                          }
+                        ]
                       },
                       "\n",
                       "ATL_APP_DATA_MOUNT_ENABLED=false\n",
@@ -2352,7 +2256,7 @@
                       "ATL_CONFLUENCE_FULL_DISPLAY_NAME=\"Atlassian Confluence\"\n",
                       "ATL_CONFLUENCE_USER=confluence\n",
                       "ATL_CONFLUENCE_CONFIG_PROPERTIES=\n",
-                      "ATL_CONFLUENCE_DB_NAME==\"confluence\"\n",
+                      "ATL_CONFLUENCE_DB_NAME=\"confluence\"\n",
                       "ATL_CONFLUENCE_VERSION=",
                       {
                         "Ref": "Version"
@@ -2491,7 +2395,7 @@
         "KeyName": {
           "Ref": "KeyName"
         },
-        "ImageId": "ami-5ac17f3e",
+        "ImageId": "ami-9c0783f8",
         "InstanceType": {
           "Ref": "SynchcronyClusterNodeInstanceType"
         },
@@ -2560,7 +2464,7 @@
                 "DoSSL",
                 {
                   "Fn::Sub": [
-                    "arn:aws:acm:${Region}:${AccountId}:server-certificate/${SSLCertificateId}",
+                    "arn:aws:acm:${Region}:${AccountId}:certificate/${SSLCertificateId}",
                     {
                       "AccountId": { "Ref": "AWS::AccountId" },
                       "Region": { "Ref": "AWS::Region" },
