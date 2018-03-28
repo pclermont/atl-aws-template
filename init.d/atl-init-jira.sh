@@ -49,7 +49,7 @@ function start {
         configureRemoteDb
     fi
 
-    find ${ATL_APP_DATA_MOUNT}/jira \! -user ${ATL_JIRA_USER} -maxdepth 3 -exec chown -H "${ATL_JIRA_USER}":"${ATL_JIRA_USER}" {} \;
+    find ${ATL_APP_DATA_MOUNT}/jira \! -user ${ATL_JIRA_USER} -maxdepth 1 -exec chown -H "${ATL_JIRA_USER}":"${ATL_JIRA_USER}" {} \;
 
     goJIRA
 
