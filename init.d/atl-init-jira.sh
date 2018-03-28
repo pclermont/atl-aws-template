@@ -177,7 +177,7 @@ function configureDbProperties {
     <username>$3</username>
     <password>$4</password>
     <pool-min-size>20</pool-min-size>
-    <pool-max-size>20</pool-max-size>
+    <pool-max-size>100</pool-max-size>
     <pool-max-wait>30000</pool-max-wait>
     <validation-query>select 1</validation-query>
     <min-evictable-idle-time-millis>60000</min-evictable-idle-time-millis>
