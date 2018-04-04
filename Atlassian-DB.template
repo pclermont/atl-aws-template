@@ -135,6 +135,7 @@
         "AllocatedStorage": {
           "Ref": "DBStorage"
         },
+        "BackupRetentionPeriod": 30,
         "DBInstanceClass": {
           "Ref": "DBInstanceClass"
         },
