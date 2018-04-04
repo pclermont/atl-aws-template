@@ -204,22 +204,6 @@
         }
       }
     },
-    "EFSMountAz3": {
-      "Type": "AWS::EFS::MountTarget",
-      "Properties": {
-        "FileSystemId": {
-          "Ref": "ElasticFileSystem"
-        },
-        "SecurityGroups": [
-          {
-            "Ref": "EFSSecurityGroup"
-          }
-        ],
-        "SubnetId": {
-          "Fn::ImportValue": "SharedServices-SubnetPrivate3Id"
-        }
-      }
-    },
     "EFSSecurityGroup": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
