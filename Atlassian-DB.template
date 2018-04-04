@@ -1,226 +1,22 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "Atlassian Solution Template",
-  "Metadata": {
-    "AWS::CloudFormation::Interface": {
-      "ParameterGroups": [{
-        "Label": {
-          "default": "Atlassian setup"
-        },
-        "Parameters": [
-          "AtlassianProduct",
-          "Version"
-        ]
-      }, {
-        "Label": {
-          "default": "Cluster nodes"
-        },
-        "Parameters": [
-          "ClusterNodeInstanceType",
-          "ClusterNodeMin",
-          "ClusterNodeMax"
-        ]
-      }, {
-        "Label": {
-          "default": "Database"
-        },
-        "Parameters": [
-          "DBInstanceClass",
-          "DBMasterUserPassword",
-          "DBSubnets",
-          "DBPassword",
-          "DBStorage",
-          "DBStorageType",
-          "DBIops",
-          "DBMultiAZ"
-        ]
-      }, {
-        "Label": {
-          "default": "Networking"
-        },
-        "Parameters": [
-          "VPC",
-          "Subnets",
-          "KeyName",
-          "CustomDnsName",
-          "SSLCertificateId"
-        ]
-      }, {
-        "Label": {
-          "default": "Advanced (Optional)"
-        },
-        "Parameters": [
-          "CatalinaOpts",
-          "JVMMinimumMemory",
-          "JVMMaximumMemory"
-        ]
-      }, {
-        "Label": {
-          "default": "Confluence (only)"
-        },
-        "Parameters": [
-          "SynchcronyClusterNodeInstanceType",
-          "SynchcronyClusterNodeMin",
-          "SynchcronyClusterNodeMax"
-        ]
-      }, {
-        "Label": {
-          "default": "Bitbucket (only)"
-        },
-        "Parameters": [
-          "BitbucketProperties"
-        ]
-      }],
-      "ParameterLabels": {
-        "CatalinaOpts": {
-          "default": "Catalina options"
-        },
-        "JVMMinimumMemory": {
-          "default": "JVM Minimum Memory in megs"
-        },
-        "JVMMaximumMemory": {
-          "default": "JVM Maximum Memory in megs"
-        },
-        "ClusterNodeMax": {
-          "default": "Maximum number of cluster nodes"
-        },
-        "BitbucketProperties": {
-          "default": "Bitbucket properties"
-        },
-        "ClusterNodeMin": {
-          "default": "Minimum number of cluster nodes"
-        },
-        "ClusterNodeInstanceType": {
-          "default": "Atlassian cluster node instance type"
-        },
-        "DBInstanceClass": {
-          "default": "Database instance class"
-        },
-        "DBMasterUserPassword": {
-          "default": "Master password *"
-        },
-        "DBPassword": {
-          "default": "Atlassian user database password *"
-        },
-        "DBStorage": {
-          "default": "Database storage"
-        },
-        "DBStorageType": {
-          "default": "Database storage type"
-        },
-        "DBSubnets": {
-          "default": "Subnets *"
-        },
-        "DBIops": {
-          "default": "RDS Provisioned IOPS"
-        },
-        "AtlassianProduct": {
-          "default": "Atlassian Product"
-        },
-        "KeyName": {
-          "default": "Key Name *"
-        },
-        "CustomDnsName": {
-          "default": "Existing DNS name (optional)"
-        },
-        "SSLCertificateId": {
-          "default": "SSL Certificate Id"
-        },
-        "Subnets": {
-          "default": "Subnets *"
-        },
-        "VPC": {
-          "default": "VPC *"
-        }
+  "Description": "Atlassian Database Solution Template",
+  "Mappings": {
+    "EnvironmentLookups": {
+      "EnvNameToPretty": {
+        "dv": "Dev",
+        "it": "Int",
+        "np": "NonPrd",
+        "pr": "Prd",
+        "ua": "UAT"
       }
     }
   },
   "Parameters": {
-    "ClusterNodeMax": {
-      "Type": "Number",
-      "Default": "1"
-    },
-    "ClusterNodeMin": {
-      "Type": "Number",
-      "Default": "1"
-    },
-    "ElasticSearchEndpoint": {
+    "Application": {
+      "Description": "Application Name",
       "Type": "String",
-      "Default": ""
-    },
-    "BitbucketProperties": {
-      "Type": "CommaDelimitedList",
-      "Description": "A comma-separated list of bitbucket properties in the form key1=value1, key2=value2, ... Find documentation at https://confluence.atlassian.com/x/m5ZKLg",
-      "Default": ""
-    },
-    "ClusterNodeInstanceType": {
-      "Type": "String",
-      "Default": "c4.xlarge",
-      "AllowedValues": [
-        "c4.xlarge",
-        "c4.2xlarge",
-        "c4.4xlarge",
-        "c4.8xlarge",
-        "c5.2xlarge",
-        "i2.xlarge",
-        "i2.2xlarge",
-        "i2.4xlarge",
-        "i2.8xlarge",
-        "r3.xlarge",
-        "r3.2xlarge",
-        "r3.4xlarge",
-        "r3.8xlarge",
-        "x1.32xlarge"
-      ],
-      "ConstraintDescription": "Must be an EC2 instance type in the C3, I2, R3, or X1 family, 'xlarge' or larger",
-      "Description": "Instance type for the cluster nodes."
-    },
-    "SynchcronyClusterNodeMax": {
-      "Type": "Number",
-      "Default": "1"
-    },
-    "SynchcronyClusterNodeMin": {
-      "Type": "Number",
-      "Default": "1"
-    },
-    "SynchcronyClusterNodeInstanceType": {
-      "Type": "String",
-      "Default": "c4.large",
-      "AllowedValues": [
-        "c4.large",
-        "c4.xlarge",
-        "c4.2xlarge",
-        "c4.4xlarge",
-        "c4.8xlarge",
-        "i2.xlarge",
-        "i2.2xlarge",
-        "i2.4xlarge",
-        "i2.8xlarge",
-        "r3.xlarge",
-        "r3.2xlarge",
-        "r3.4xlarge",
-        "r3.8xlarge",
-        "x1.32xlarge"
-      ],
-      "ConstraintDescription": "Must be an EC2 instance type in the C3, I2, R3, or X1 family, 'large' or larger",
-      "Description": "Instance type for the cluster nodes."
-    },
-    "CatalinaOpts": {
-      "Type": "String",
-      "Default": ""
-    },
-    "JVMMinimumMemory": {
-      "Type": "Number",
-      "Default": 384
-    },
-    "JVMMaximumMemory": {
-      "Type": "Number",
-      "Default": 768
-    },
-    "Version": {
-      "Type": "String",
-      "AllowedPattern": "(\\d+\\.\\d+\\.\\d+(-?.*))",
-      "Default": "0.0.0"
+      "ConstraintDescription": "Must be the name of the Application this will be used for"
     },
     "DBInstanceClass": {
       "Description": "RDS instance type",
@@ -242,16 +38,6 @@
       ],
       "ConstraintDescription": "Must be a valid RDS instance class, 'db.t2.medium' or larger."
     },
-    "NFSServer": {
-      "Default": "",
-      "Description": "NFSServer IP Address",
-      "Type": "String"
-    },
-    "NFSServerSecurityGroup": {
-      "Default": "",
-      "Description": "NFSServer IP Address",
-      "Type": "AWS::EC2::SecurityGroup::Id"
-    },
     "DBMasterUserPassword": {
       "NoEcho": "true",
       "Default": "",
@@ -265,15 +51,6 @@
       "Description": "Subnets (two or more) where Database will be deployed. MUST be within the selected VPC.",
       "Type": "List<AWS::EC2::Subnet::Id>",
       "ConstraintDescription": "Must be a list of two or more Subnet ID's within the selected VPC."
-    },
-    "DBPassword": {
-      "Default": "",
-      "Description": "Database user account password.",
-      "Type": "String",
-      "MaxLength": "41",
-      "AllowedPattern": "[a-zA-Z0-9]*",
-      "ConstraintDescription": "Must contain only alphanumeric characters.",
-      "NoEcho": "true"
     },
     "DBStorage": {
       "Description": "Database allocated storage size, in gigabytes (GB)",
@@ -307,61 +84,26 @@
       "MaxValue": "30000",
       "ConstraintDescription": "Must be in the range 1000 - 30000."
     },
-    "AtlassianProduct": {
-      "Description": "The Atlassian Product to install.",
-      "Type": "String",
-      "ConstraintDescription": "Must be \"Jira\", \"Bitbucket\", or \"Confluence\"",
+    "EnvironmentName": {
       "AllowedValues": [
-        "Jira",
-        "Bitbucket",
-        "Confluence"
-      ]
-    },
-    "KeyName": {
-      "Description": "The EC2 Key Pair to allow SSH access to the instances",
-      "Type": "AWS::EC2::KeyPair::KeyName",
-      "ConstraintDescription": "Must be the name of an existing EC2 Key Pair."
-    },
-    "CustomDnsName": {
-      "Description": "Use custom existing DNS name for your JIRA Data Center instance. Please note: you must own the domain and configure it to point at the load balancer.",
+        "dv",
+        "it",
+        "ut",
+        "pr",
+        "np"
+      ],
+      "Description": "Environment name (dv, it, ut, pr, np)",
       "Type": "String"
     },
-    "SSLCertificateId": {
-      "Description": "The Id of your Server Certificate to use for HTTPS.  Leave blank if you don't want to set up HTTPS at this time",
+    "StackId": {
+      "Description": "Stack id",
       "Type": "String",
-      "MinLength": "0",
-      "MaxLength": "64",
-      "Default": ""
-    },
-    "Subnets": {
-      "Description": "Subnets (two or more) where your cluster nodes and other internal infrastructure will be deployed. MUST be within the selected VPC.",
-      "Type": "List<AWS::EC2::Subnet::Id>",
-      "ConstraintDescription": "Must be a list of two or more Subnet ID's within the selected VPC."
+      "ConstraintDescription": "Stack id"
     },
     "VPC": {
       "Description": "Virtual Private Cloud",
       "Type": "AWS::EC2::VPC::Id",
       "ConstraintDescription": "Must be the ID of a VPC."
-    },
-    "AdminNetwork": {
-      "Description": "CIDR for administrative access ",
-      "Type": "String",
-      "ConstraintDescription": "Must be a valid cidr network range",
-      "AllowedPattern":  "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
-      "Default": "10.0.0.0/8"
-    },
-    "SSLKeystore": {
-      "Description": "Keystore file name",
-      "Type": "String"
-    },
-    "SSLKeystorePassword": {
-      "Description": "Keystore password",
-      "Type": "String",
-      "NoEcho": "true"
-    },
-    "SSLKeystoreBucket": {
-      "Description": "Bucket where the SSL keystore is located",
-      "Type": "String"
     }
   },
   "Conditions": {
@@ -384,100 +126,6 @@
           ]
         }
       ]
-    },
-    "UseCustomDnsName": {
-      "Fn::Not": [
-        {
-          "Fn::Equals": [
-            {
-              "Ref": "CustomDnsName"
-            },
-            ""
-          ]
-        }
-      ]
-    },
-    "DoSSL": {
-      "Fn::Not": [
-        {
-          "Fn::Equals": [
-            {
-              "Ref": "SSLKeystore"
-            },
-            ""
-          ]
-        }
-      ]
-    },
-    "JiraProduct": {
-      "Fn::Equals": [
-        {
-          "Ref": "AtlassianProduct"
-        },
-        "Jira"
-      ]
-    },
-    "ConfluenceProduct": {
-      "Fn::Equals": [
-        {
-          "Ref": "AtlassianProduct"
-        },
-        "Confluence"
-      ]
-    },
-    "BitbucketProduct": {
-      "Fn::Equals": [
-        {
-          "Ref": "AtlassianProduct"
-        },
-        "Bitbucket"
-      ]
-    },
-    "NotJiraProduct": {
-      "Fn::Not": [
-        {
-          "Fn::Equals": [
-            {
-              "Ref": "AtlassianProduct"
-            },
-            "Jira"
-          ]
-        }
-      ]
-    },
-    "NotConfluenceProduct": {
-      "Fn::Not": [
-        {
-          "Fn::Equals": [
-            {
-              "Ref": "AtlassianProduct"
-            },
-            "Confluence"
-          ]
-        }
-      ]
-    },
-    "isNotVersion4X": {
-      "Fn::And": [
-        { "Fn::Not": [{
-          "Fn::Equals": [
-            "4",
-            {
-              "Fn::Select": [
-                0,
-                {
-                  "Fn::Split": [
-                    ".",
-                    { "Ref": "Version" }
-                  ]
-                }
-
-              ]
-            }
-          ]
-        }]},
-        { "Condition": "BitbucketProduct" }
-      ]
     }
   },
   "Resources": {
@@ -494,14 +142,16 @@
           "Ref": "DBSubnetGroup"
         },
         "Engine": "postgres",
-        "EngineVersion": "9.4.12",
+        "EngineVersion": "9.4.15",
         "MasterUsername": "postgres",
         "StorageEncrypted": true,
         "MasterUserPassword": {
           "Fn::If": [
-            "DoSetDBMasterUserPassword", {
+            "DoSetDBMasterUserPassword",
+            {
               "Ref": "DBMasterUserPassword"
-            }, {
+            },
+            {
               "Ref": "AWS::NoValue"
             }
           ]
@@ -515,9 +165,11 @@
         },
         "Iops": {
           "Fn::If": [
-            "DBProvisionedIops", {
+            "DBProvisionedIops",
+            {
               "Ref": "DBIops"
-            }, {
+            },
+            {
               "Ref": "AWS::NoValue"
             }
           ]
@@ -525,13 +177,65 @@
         "MultiAZ": {
           "Ref": "DBMultiAZ"
         },
-        "VPCSecurityGroups": [{
-          "Ref": "DBSecurityGroup"
-        }],
-        "Tags": [{
-          "Key": "Name",
-          "Value": "JIRA PostgreSQL Database"
-        }]
+        "VPCSecurityGroups": [
+          {
+            "Ref": "DBSecurityGroup"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "application",
+            "Value": {
+              "Ref": "Application"
+            }
+          },
+          {
+            "Key": "environment",
+            "Value": {
+              "Fn::FindInMap": [
+                "EnvironmentLookups",
+                "EnvNameToPretty",
+                {
+                  "Ref": "EnvironmentName"
+                }
+              ]
+            }
+          },
+          {
+            "Key": "MonitoringProfile",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "Application"
+                  },
+                  "DB"
+                ]
+              ]
+            }
+          },
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "Database"
+                ]
+              ]
+            }
+          },
+          {
+            "Key": "stackId",
+            "Value": {
+              "Ref": "StackId"
+            }
+          }
+        ]
       }
     },
     "DBSubnetGroup": {
@@ -543,2136 +247,214 @@
         }
       }
     },
-    "ClusterNodeRole": {
-      "Type": "AWS::IAM::Role",
-      "Condition": "NotJiraProduct",
-      "Properties": {
-        "AssumeRolePolicyDocument": {
-          "Version": "2012-10-17",
-          "Statement": [
-            {
-              "Effect": "Allow",
-              "Principal": {
-                "Service": ["ec2.amazonaws.com"]
-              },
-              "Action": ["sts:AssumeRole"]
-            }
-          ]
-        },
-        "Path": "/",
-        "Policies": [
-          {
-            "PolicyName": "ConfluenceClusterNodePolicy",
-            "PolicyDocument": {
-              "Version": "2012-10-17",
-              "Statement": [
-                {
-                  "Action": ["ec2:DescribeInstances"],
-                  "Effect": "Allow",
-                  "Resource": ["*"]
-                }
-              ]
-            }
-          },
-          {
-            "PolicyName": "S3BucketFetch",
-            "PolicyDocument": {
-              "Version": "2012-10-17",
-              "Statement": [
-                {
-                  "Action": ["s3:GetObject"],
-                  "Effect": "Allow",
-                  "Resource": [
-                    {
-                      "Fn::Join": [
-                        "",
-                        [
-                          "arn:aws:s3:::",
-                          {
-                            "Ref": "SSLKeystoreBucket"
-                          },
-                          "/",
-                          {
-                            "Ref": "SSLKeystore"
-                          }
-                        ]
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          }
-        ]
-
-      }
-    },
-    "ClusterNodeInstanceProfile": {
-      "Type": "AWS::IAM::InstanceProfile",
-      "Condition": "NotJiraProduct",
-      "Properties": {
-        "Path": "/",
-        "Roles": [{"Ref": "ClusterNodeRole"}]
-      }
-    },
-    "ClusterNodeGroup": {
-      "Type": "AWS::AutoScaling::AutoScalingGroup",
-      "Properties": {
-        "DesiredCapacity": {
-          "Ref": "ClusterNodeMin"
-        },
-        "LaunchConfigurationName": {
-          "Ref": "ClusterNodeLaunchConfig"
-        },
-        "MaxSize": {
-          "Ref": "ClusterNodeMax"
-        },
-        "MinSize": {
-          "Ref": "ClusterNodeMin"
-        },
-        "TargetGroupARNs": [{
-          "Fn::If": [
-            "ConfluenceProduct",
-            { "Ref": "MainTargetGroup" },
-            { "Ref": "AWS::NoValue" }
-          ]
-        }],
-        "LoadBalancerNames": [
-          {
-            "Fn::If": [
-              "ConfluenceProduct",
-              {
-                "Ref": "AWS::NoValue"
-              },
-              {
-                "Ref": "LoadBalancer"
-              }
-            ]
-          }
-        ],
-        "VPCZoneIdentifier": {
-          "Ref": "Subnets"
-        },
-        "Tags": [
-          {
-            "Key": "Name",
-            "Value": { "Fn::Join": [ " ", [ { "Ref": "AtlassianProduct" }, "Node" ] ] },
-            "PropagateAtLaunch": true
-          },
-          {
-            "Key": "Cluster",
-            "Value": {
-              "Ref": "AWS::StackName"
-            },
-            "PropagateAtLaunch": true
-          },
-          {
-            "Key": "Transit",
-            "Value": "Steve Qui Paye",
-            "PropagateAtLaunch": true
-          }
-        ]
-      }
-    },
-    "ClusterNodeLaunchConfig": {
-      "Type": "AWS::AutoScaling::LaunchConfiguration",
-      "DependsOn": [
-        "DB"
-      ],
-      "Metadata": {
-        "Comment": "",
-        "AWS::CloudFormation::Init": {
-          "configSets": {
-            "default": [
-              "install",
-              "common",
-              {
-                "Ref": "AtlassianProduct"
-              },
-              "startservices"
-            ]
-          },
-          "install": {
-            "files": {
-              "/etc/sysconfig/atl": {
-                "content": {
-                  "Fn::Join": [
-                    "\n",
-                    [
-                      "ATL_LOG=/var/log/atl.log",
-                      "ATL_APP_DATA_MOUNT_ENABLED=true",
-                      "ATL_APP_DATA_BLOCK_DEVICE=/dev/xvdf",
-                      "ATL_APP_DATA_MOUNT=\"/media/atl\"",
-                      "ATL_APP_DATA_DIR=\"/var/atlassian/application-data\"",
-                      "ATL_APP_DATA_FS_TYPE=\"zfs\"",
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "ATL_JVM_MINIMUM_MEMORY=\"",
-                            {
-                              "Ref": "JVMMinimumMemory"
-                            },
-                            "m\""
-                          ]
-                        ]
-                      },
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "ATL_JVM_MAXIMUM_MEMORY=\"",
-                            {
-                              "Ref": "JVMMaximumMemory"
-                            },
-                            "m\""
-                          ]
-                        ]
-                      },
-                      "ATL_INSTANCE_STORE_BLOCK_DEVICE=\"/dev/xvdb\"",
-                      "ATL_INSTANCE_STORE_MOUNT=\"/media/ephemeral0\"",
-                      "ATL_APP_NFS_SERVER=false",
-                      "ATL_RELEASE_S3_BUCKET=atlassian-software",
-                      "ATL_RELEASE_S3_PATH=\"releases\"",
-                      "ATL_HOST_NAME=",
-                      "ATL_POSTGRES_ENABLED=true",
-                      "ATL_NGINX_ENABLED=false",
-                      "ATL_SSL_SELF_CERT_ENABLED=false",
-                      "ATL_SSL_SELF_CERT_COUNTRY=US",
-                      "ATL_SSL_SELF_CERT_STATE=CA",
-                      "ATL_SSL_SELF_CERT_LOCALE=\"San Francisco\"",
-                      "ATL_SSL_SELF_CERT_ORG=\"An Atlassian Customer\"",
-                      "ATL_SSL_SELF_CERT_ORG_UNIT=\"An Atlassian Customer's Team\"",
-                      "ATL_SSL_SELF_CERT_EMAIL_ADDRESS=sales@atlassian.com",
-                      "ATL_SSL_SELF_CERT_PATH=/etc/nginx/ssl/self-ssl.crt",
-                      "ATL_SSL_SELF_CERT_KEY_PATH=/etc/nginx/ssl/self-ssl.key"
-                    ]
-                  ]
-                }
-              }
-            },
-            "packages": {
-              "yum": {
-                "nginx": []
-              }
-            }
-          },
-          "common": {
-            "files": {
-              "/etc/cfn/cfn-hup.conf": {
-                "content": {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "[main]\n",
-                      "stack=",
-                      {
-                        "Ref": "AWS::StackId"
-                      },
-                      "\n",
-                      "region=",
-                      {
-                        "Ref": "AWS::Region"
-                      },
-                      "\n"
-                    ]
-                  ]
-                },
-                "mode": "000400",
-                "owner": "root",
-                "group": "root"
-              },
-              "/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
-                "content": {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "[cfn-auto-reloader-hook]\n",
-                      "triggers=post.update\n",
-                      "path=Resources.ClusterNodeLaunchConfig.Metadata.AWS::CloudFormation::Init\n",
-                      "action=/opt/aws/bin/cfn-init -v ",
-                      "         --stack ",
-                      {
-                        "Ref": "AWS::StackName"
-                      },
-                      "         --resource ClusterNodeLaunchConfig ",
-                      "         --region ",
-                      {
-                        "Ref": "AWS::Region"
-                      },
-                      "\n",
-                      "runas=root\n"
-                    ]
-                  ]
-                }
-              }
-            },
-            "commands": {
-              "001_yum_update": {
-                "command": "yum -y update",
-                "ignoreErrors": "false"
-              },
-              "010_make_mount_point": {
-                "command": "mkdir -p /media/atl",
-                "ignoreErrors": "false"
-              },
-              "020_add_nfs_mount": {
-                "command": {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "echo ",
-                      {
-                        "Ref": "NFSServer"
-                      },
-                      ":/nfs/ /media/atl nfs4 noatime,intr,rsize=32768,wsize=32768 0 0 >>/etc/fstab"
-                    ]
-                  ]
-                },
-                "ignoreErrors": "false"
-              },
-              "030_mount_all": {
-                "command": "mount -a",
-                "ignoreErrors": "false"
-              },
-              "040_make_shared_home_dir": {
-                "command": "mkdir -p /media/atl/jira/shared",
-                "ignoreErrors": "false"
-              },
-              "050_remove_java_openjdk": {
-                "command": "yum -y remove java-1.7.0-openjdk.x86_64",
-                "ignoreErrors": "false"
-              },
-              "060_install_jq": {
-                "command": "yum -y install jq",
-                "ignoreErrors": "false"
-              },
-              "070_fetch_atlassian_functions": {
-                "command": "curl https://raw.githubusercontent.com/pclermont/atl-aws-template/master/init.d/atl-functions >> /tmp/atl-functions",
-                "ignoreErrors": "false"
-              },
-              "071_move_atlassian_functions": {
-                "command": "mv /tmp/atl-functions /etc/init.d/atl-functions && sudo chown root:root /etc/init.d/atl-functions",
-                "ignoreErrors": "false"
-              },
-              "080_fetch_update_hostname_script": {
-                "command": "curl https://raw.githubusercontent.com/pclermont/atl-aws-template/master/bin/atl-update-host-name.sh -o /tmp/atl-update-host-name.sh",
-                "ignoreErrors": "false"
-              },
-              "081_move_hostname_script": {
-                "command": "mkdir -p /opt/atlassian/bin && sudo mv /tmp/atl-update-host-name.sh /opt/atlassian/bin/atl-update-host-name.sh && sudo chmod +x /opt/atlassian/bin/atl-update-host-name.sh && sudo chown root:root /opt/atlassian/bin/atl-update-host-name.sh",
-                "ignoreErrors": "false"
-              },
-              "090_fetch_init_volumes": {
-                "command": "curl https://raw.githubusercontent.com/pclermont/atl-aws-template/master/init.d/atl-init-10-volume.sh >> /tmp/atl-init-10-volume",
-                "ignoreErrors": "false"
-              },
-              "100_fetch_init_instance_store": {
-                "command": "curl https://raw.githubusercontent.com/pclermont/atl-aws-template/master/init.d/atl-init-20-instance-store.sh >> /tmp/atl-init-20-instance-store",
-                "ignoreErrors": "false"
-              },
-              "110_fetch_init_products": {
-                "command": "curl https://raw.githubusercontent.com/pclermont/atl-aws-template/master/init.d/atl-init-40-products.sh >> /tmp/atl-init-40-products",
-                "ignoreErrors": "false"
-              },
-              "120_mv_init_scripts": {
-                "command": "sudo chown root:root /tmp/atl-init-* && sudo chmod 755 /tmp/atl-init-* && mv /tmp/atl-init-* /etc/init.d/",
-                "ignoreErrors": "false"
-              }
-            },
-            "services": {
-              "sysvinit": {
-                "cfn-hup": {
-                  "enabled": "true",
-                  "ensureRunning": "true",
-                  "files": [
-                    "/etc/cfn/cfn-hup.conf",
-                    "/etc/cfn/hooks.d/cfn-auto-reloader.conf"
-                  ]
-                },
-                "rpcbind": {
-                  "enabled": "true",
-                  "ensureRunning": "true",
-                  "packages": {
-                    "yum": [
-                      "nfs-utils"
-                    ]
-                  }
-                }
-              }
-            },
-            "packages": {
-              "yum": {
-                "postgresql94": []
-              }
-            }
-          },
-          "Jira": {
-            "files": {
-              "/etc/atl": {
-                "content": {
-                  "Fn::Join": [
-                    "\n",
-                    [
-                      "ATL_APP_DATA_MOUNT_ENABLED=false",
-                      "ATL_DB_NAME=atljira",
-                      "ATL_DB_USER=atljira",
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "ATL_DB_PASSWORD=",
-                            {
-                              "Ref": "DBMasterUserPassword"
-                            }
-                          ]
-                        ]
-                      },
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "ATL_DB_HOST=",
-                            {
-                              "Fn::GetAtt": [
-                                "DB",
-                                "Endpoint.Address"
-                              ]
-                            }
-                          ]
-                        ]
-                      },
-                      "{ \"name\": \""
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "ATL_DB_PORT=",
-                            {
-                              "Fn::GetAtt": [
-                                "DB",
-                                "Endpoint.Port"
-                              ]
-                            }
-                          ]
-                        ]
-                      },
-                      "ATL_JDBC_DRIVER=org.postgresql.Driver",
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "ATL_JDBC_URL=jdbc:postgresql://",
-                            {
-                              "Fn::GetAtt": [
-                                "DB",
-                                "Endpoint.Address"
-                              ]
-                            },
-                            ":",
-                            {
-                              "Fn::GetAtt": [
-                                "DB",
-                                "Endpoint.Port"
-                              ]
-                            },
-                            "/atljira"
-                          ]
-                        ]
-                      },
-                      "ATL_JDBC_USER=atljira",
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "ATL_JDBC_PASSWORD=",
-                            {
-                              "Ref": "DBPassword"
-                            }
-                          ]
-                        ]
-                      },
-                      "ATL_ENABLED_PRODUCTS=Jira",
-                      "ATL_ENABLED_SHARED_HOMES=",
-                      "ATL_JIRA_NAME=jira-software",
-                      "ATL_JIRA_SHORT_DISPLAY_NAME=\"JIRA SW\"",
-                      "ATL_JIRA_FULL_DISPLAY_NAME=\"Atlassian JIRA Software\"",
-                      "ATL_JIRA_INSTALL_DIR=/opt/atlassian/jira",
-                      "ATL_JIRA_USER=\"jira\"",
-                      "ATL_JIRA_CONFIG_PROPERTIES=",
-                      "ATL_JIRA_DB_NAME=\"atljira\"",
-                      "ATL_JIRA_DB_USER=\"atljira\"",
-                      "ATL_JIRA_HOME=\"/var/atlassian/application-data/jira\"",
-                      "ATL_JIRA_NGINX_PATH=/",
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "ATL_JIRA_VERSION=",
-                            {
-                              "Ref": "Version"
-                            }
-                          ]
-                        ]
-                      },
-                      "ATL_POSTGRES_ENABLED=false",
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "ATL_PROXY_NAME=",
-                            {
-                              "Fn::If": [
-                                "UseCustomDnsName",
-                                {
-                                  "Ref": "CustomDnsName"
-                                },
-                                {
-                                  "Fn::If": [
-                                    "ConfluenceProduct",
-                                    {
-                                      "Fn::GetAtt": [
-                                        "ConfluenceLoadBalancer",
-                                        "DNSName"
-                                      ]
-                                    },
-                                    {
-                                      "Fn::GetAtt": [
-                                        "LoadBalancer",
-                                        "DNSName"
-                                      ]
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                          ]
-                        ]
-                      },
-                      "ATL_SSL_SELF_CERT_ENABLED=false",
-                      {
-                        "Fn::If": [
-                          "DoSSL",
-                          "ATL_SSL_PROXY=true",
-                          {
-                            "Ref": "AWS::NoValue"
-                          }
-                        ]
-                      },
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "ATL_SSLKeystorePassword=",
-                            { "Ref": "SSLKeystorePassword" }
-                          ]
-                        ]
-                      },
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "ATL_SSLKeystoreBucket=",
-                            { "Ref": "SSLKeystoreBucket" }
-                          ]
-                        ]
-                      },
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "ATL_SSLKeystore=",
-                            { "Ref": "SSLKeystore" }
-                          ]
-                        ]
-                      }
-                    ]
-                  ]
-                }
-              }
-            },
-            "commands": {
-              "10_fetch_init_jira": {
-                "command": "curl https://raw.githubusercontent.com/pclermont/atl-aws-template/master/init.d/atl-init-jira.sh >> /tmp/atl-init-jira.sh",
-                "ignoreErrors": "false"
-              },
-              "11_chmod_init_jira": {
-                "command": "chmod 755 /tmp/atl-init-jira.sh && chown root:root /tmp/atl-init-jira.sh && mv /tmp/atl-init-jira.sh /etc/init.d/atl-init-jira",
-                "ignoreErrors": "false"
-              }
-            }
-          },
-          "Confluence": {
-            "files": {
-              "/etc/atl": {
-                "content": {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "ATL_SYNCHRONY_SERVICE_URL=",
-                      {
-                        "Fn::Sub": [
-                          "${Protocol}://${LoadBalancerName}/synchrony/v1",
-                          {
-                            "Protocol": {
-                              "Fn::If": [
-                                "DoSSL",
-                                "https",
-                                "http"
-                              ]
-                            },
-                            "LoadBalancerName": {
-                              "Fn::If": [
-                                "ConfluenceProduct",
-                                { "Ref": "CustomDnsName" },
-                                ""
-                              ]
-                            }
-                          }
-                        ]
-                      },
-                      "\n",
-                      "ATL_APP_DATA_MOUNT_ENABLED=false\n",
-                      "ATL_DB_NAME=confluence\n",
-                      "ATL_DB_USER=confluence\n",
-                      "ATL_DB_PASSWORD=",
-                      {
-                        "Ref": "DBMasterUserPassword"
-                      },
-                      "\n",
-                      "ATL_DB_HOST=",
-                      {
-                        "Fn::GetAtt": [
-                          "DB",
-                          "Endpoint.Address"
-                        ]
-                      },
-                      "\n",
-                      "ATL_DB_PORT=",
-                      {
-                        "Fn::GetAtt": [
-                          "DB",
-                          "Endpoint.Port"
-                        ]
-                      },
-                      "\n",
-                      "ATL_JDBC_DRIVER=org.postgresql.Driver\n",
-                      "ATL_JDBC_URL=jdbc:postgresql://",
-                      {
-                        "Fn::GetAtt": [
-                          "DB",
-                          "Endpoint.Address"
-                        ]
-                      },
-                      ":",
-                      {
-                        "Fn::GetAtt": [
-                          "DB",
-                          "Endpoint.Port"
-                        ]
-                      },
-                      "/confluence\n",
-                      "ATL_JDBC_USER=confluence\n",
-                      "ATL_JDBC_PASSWORD=",
-                      {
-                        "Ref": "DBPassword"
-                      },
-                      "\n",
-                      "ATL_ENABLED_PRODUCTS=Confluence\n",
-                      "ATL_ENABLED_SHARED_HOMES=\n",
-                      "ATL_CONFLUENCE_NAME=confluence\n",
-                      "ATL_CONFLUENCE_SHORT_DISPLAY_NAME=\"Confluence\"\n",
-                      "ATL_CONFLUENCE_FULL_DISPLAY_NAME=\"Atlassian Confluence\"\n",
-                      "ATL_CONFLUENCE_USER=confluence\n",
-                      "ATL_CONFLUENCE_CONFIG_PROPERTIES=\n",
-                      "ATL_CONFLUENCE_DB_NAME=\"confluence\"\n",
-                      "ATL_CONFLUENCE_VERSION=",
-                      {
-                        "Ref": "Version"
-                      },
-                      "\n",
-                      "ATL_CONFLUENCE_DB_USER=\"confluence\"\n",
-                      "ATL_CONFLUENCE_INSTALL_DIR=/opt/atlassian/confluence\n",
-                      "ATL_CONFLUENCE_HOME=\"/var/atlassian/application-data/confluence\"\n",
-                      "ATL_CONFLUENCE_NGINX_PATH=/\n",
-                      "ATL_POSTGRES_ENABLED=false\n",
-                      "ATL_CONFLUENCE_DATA_CENTER=true\n",
-                      "ATL_HAZELCAST_NETWORK_AWS_IAM_ROLE=",
-                      {
-                        "Fn::If": [
-                          "ConfluenceProduct",
-                          {
-                            "Ref": "ClusterNodeRole"
-                          },
-                          ""
-                        ]
-                      },
-                      "\n",
-                      "ATL_HAZELCAST_NETWORK_AWS_IAM_REGION=",
-                      {
-                        "Ref": "AWS::Region"
-                      },
-                      "\n",
-                      "ATL_HAZELCAST_NETWORK_AWS_TAG_KEY=Cluster\n",
-                      "ATL_HAZELCAST_NETWORK_AWS_TAG_VALUE=",
-                      {
-                        "Ref": "AWS::StackName"
-                      },
-                      "\n",
-                      "ATL_PROXY_NAME=",
-                      {
-                        "Fn::If": [
-                          "UseCustomDnsName",
-                          {
-                            "Ref": "CustomDnsName"
-                          },
-                          {
-                            "Fn::If": [
-                              "ConfluenceProduct",
-                              {
-                                "Fn::GetAtt": [
-                                  "ConfluenceLoadBalancer",
-                                  "DNSName"
-                                ]
-                              },
-                              {
-                                "Fn::GetAtt": [
-                                  "LoadBalancer",
-                                  "DNSName"
-                                ]
-                              }
-                            ]
-                          }
-                        ]
-                      },
-                      "\n",
-                      "ATL_SSL_SELF_CERT_ENABLED=false\n",
-                      {
-                        "Fn::If": [
-                          "DoSSL",
-                          "ATL_SSL_PROXY=true\n",
-                          {
-                            "Ref": "AWS::NoValue"
-                          }
-                        ]
-                      },
-                      "ATL_AWS_STACK_NAME=",
-                      {
-                        "Ref": "AWS::StackName"
-                      },
-                      "\n",
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "ATL_SSLKeystorePassword=",
-                            { "Ref": "SSLKeystorePassword" },
-                            "\n"
-                          ]
-                        ]
-                      },
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "ATL_SSLKeystoreBucket=",
-                            { "Ref": "SSLKeystoreBucket" },
-                            "\n"
-                          ]
-                        ]
-                      },
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "ATL_SSLKeystore=",
-                            { "Ref": "SSLKeystore" },
-                            "\n"
-                          ]
-                        ]
-                      }
-                    ]
-                  ]
-                }
-              }
-            },
-            "commands": {
-              "10_fetch_init_confluence": {
-                "command": "curl https://raw.githubusercontent.com/pclermont/atl-aws-template/master/init.d/atl-init-confluence.sh >> /tmp/atl-init-confluence.sh",
-                "ignoreErrors": "false"
-              },
-              "11_chmod_init_confluence": {
-                "command": "chmod 755 /tmp/atl-init-confluence.sh && chown root:root /tmp/atl-init-confluence.sh && mv /tmp/atl-init-confluence.sh /etc/init.d/atl-init-confluence",
-                "ignoreErrors": "false"
-              },
-              "20_fetch_init_confluence_common": {
-                "command": "curl https://raw.githubusercontent.com/pclermont/atl-aws-template/master/init.d/atl-confluence-common  >> /tmp/atl-confluence-common",
-                "ignoreErrors": "false"
-              },
-              "21_chmod_init_confluence_common": {
-                "command": "chmod 755 /tmp/atl-confluence-common && chown root:root /tmp/atl-confluence-common && mv /tmp/atl-confluence-common /etc/init.d/atl-confluence-common",
-                "ignoreErrors": "false"
-              }
-            }
-          },
-          "Bitbucket": {
-            "packages": {
-              "yum": {
-                "git": []
-              }
-            },
-            "files": {
-              "/etc/atl": {
-                "content": {
-                  "Fn::Join": [
-                    "\n",
-                    [
-                      "ATL_BITBUCKET_NAME=bitbucket",
-                      "ATL_BITBUCKET_SHORT_DISPLAY_NAME=Bitbucket",
-                      "ATL_BITBUCKET_FULL_DISPLAY_NAME=\"Atlassian Bitbucket\"",
-                      "ATL_BITBUCKET_USER=bitbucket",
-                      "ATL_BITBUCKET_UID=402",
-                      "ATL_BITBUCKET_DB_NAME=bitbucket",
-                      "ATL_BITBUCKET_DB_USER=bitbucket",
-                      "ATL_BITBUCKET_INSTALL_DIR=/opt/atlassian/bitbucket",
-                      "ATL_BITBUCKET_HOME=/var/atlassian/application-data/bitbucket",
-                      "ATL_BITBUCKET_NGINX_PATH=/",
-                      "ATL_APP_DATA_MOUNT_ENABLED=false",
-                      "ATL_DB_NAME=bitbucket",
-                      "ATL_DB_USER=bitbucket",
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "ATL_DB_PASSWORD=",
-                            {
-                              "Ref": "DBMasterUserPassword"
-                            }
-                          ]
-                        ]
-                      },
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "ATL_DB_HOST=",
-                            {
-                              "Fn::GetAtt": [
-                                "DB",
-                                "Endpoint.Address"
-                              ]
-                            }
-                          ]
-                        ]
-                      },
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "ATL_DB_PORT=",
-                            {
-                              "Fn::GetAtt": [
-                                "DB",
-                                "Endpoint.Port"
-                              ]
-                            }
-                          ]
-                        ]
-                      },
-                      "ATL_JDBC_DRIVER=org.postgresql.Driver",
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "ATL_JDBC_URL=jdbc:postgresql://",
-                            {
-                              "Fn::GetAtt": [
-                                "DB",
-                                "Endpoint.Address"
-                              ]
-                            },
-                            ":",
-                            {
-                              "Fn::GetAtt": [
-                                "DB",
-                                "Endpoint.Port"
-                              ]
-                            },
-                            "/bitbucket"
-                          ]
-                        ]
-                      },
-                      "ATL_JDBC_USER=bitbucket",
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "ATL_JDBC_PASSWORD=",
-                            {
-                              "Ref": "DBPassword"
-                            }
-                          ]
-                        ]
-                      },
-                      "ATL_ENABLED_PRODUCTS=Bitbucket",
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "ATL_BITBUCKET_PROPERTIES=\"",
-                            {
-                              "Fn::If": [
-                                "BitbucketProduct",
-                                {
-                                  "Fn::Join": [
-                                    "\n",
-                                    {
-                                      "Ref": "BitbucketProperties"
-                                    }
-                                  ]
-                                },
-                                ""
-                              ]
-                            },
-                            "\""
-                          ]
-                        ]
-                      },
-                      "HAZELCAST_NETWORK_AWS=true",
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "HAZELCAST_NETWORK_AWS_IAM_ROLE=",
-                            {
-                              "Fn::If": [
-                                "BitbucketProduct",
-                                {
-                                  "Ref": "ClusterNodeRole"
-                                },
-                                ""
-                              ]
-                            }
-                          ]
-                        ]
-                      },
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "HAZELCAST_NETWORK_AWS_REGION=",
-                            {
-                              "Ref": "AWS::Region"
-                            }
-                          ]
-                        ]
-                      },
-                      "HAZELCAST_NETWORK_AWS_TAG_KEY=Cluster",
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "HAZELCAST_NETWORK_AWS_TAG_VALUE=",
-                            {
-                              "Ref": "AWS::StackName"
-                            }
-                          ]
-                        ]
-                      },
-                      "HAZELCAST_NETWORK_MULTICAST=false",
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "HAZELCAST_GROUP_NAME=",
-                            {
-                              "Ref": "AWS::StackName"
-                            }
-                          ]
-                        ]
-                      },
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "HAZELCAST_GROUP_PASSWORD=",
-                            {
-                              "Ref": "AWS::StackName"
-                            }
-                          ]
-                        ]
-                      },
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "PLUGIN_SEARCH_ELASTICSEARCH_AWS_REGION=",
-                            {
-                              "Ref": "AWS::Region"
-                            }
-                          ]
-                        ]
-                      },
-                      {
-                        "Fn::If": [
-                          "BitbucketProduct",
-                          {
-                            "Fn::Join": [
-                              "",
-                              [
-                                "PLUGIN_SEARCH_ELASTICSEARCH_BASEURL=https://",
-                                { "Ref": "ElasticSearchEndpoint" }
-                              ]
-                            ]
-                          },
-                          { "Ref": "AWS::NoValue" }
-                        ]
-                      },
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "ATL_BITBUCKET_VERSION=",
-                            {
-                              "Ref": "Version"
-                            }
-                          ]
-                        ]
-                      },
-                      "ATL_BITBUCKET_BUNDLED_ELASTICSEARCH_ENABLED=false",
-                      "ATL_NGINX_ENABLED=false",
-                      "ATL_POSTGRES_ENABLED=false",
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "ATL_PROXY_NAME=",
-                            {
-                              "Fn::If": [
-                                "UseCustomDnsName",
-                                {
-                                  "Ref": "CustomDnsName"
-                                },
-                                {
-                                  "Fn::If": [
-                                    "ConfluenceProduct",
-                                    {
-                                      "Fn::GetAtt": [
-                                        "ConfluenceLoadBalancer",
-                                        "DNSName"
-                                      ]
-                                    },
-                                    {
-                                      "Fn::GetAtt": [
-                                        "LoadBalancer",
-                                        "DNSName"
-                                      ]
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                          ]
-                        ]
-                      },
-                      "ATL_SSL_SELF_CERT_ENABLED=false",
-                      {
-                        "Fn::If": [
-                          "DoSSL",
-                          "ATL_SSL_PROXY=true",
-                          {
-                            "Ref": "AWS::NoValue"
-                          }
-                        ]
-                      },
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "ATL_SSLKeystorePassword=",
-                            { "Ref": "SSLKeystorePassword" }
-                          ]
-                        ]
-                      },
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "ATL_SSLKeystoreBucket=",
-                            { "Ref": "SSLKeystoreBucket" }
-                          ]
-                        ]
-                      },
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "ATL_SSLKeystore=",
-                            { "Ref": "SSLKeystore" }
-                          ]
-                        ]
-                      }
-                    ]
-                  ]
-                }
-              },
-              "/etc/profile.d/catalinaopts.sh": {
-                "content": {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "if [ -f ~/.bashrc ]; then\n",
-                      "    . ~/.bashrc\n",
-                      "fi\n",
-                      "export CATALINA_OPTS=",
-                      {
-                        "Ref": "CatalinaOpts"
-                      },
-                      "\n\n"
-                    ]
-                  ]
-                },
-                "mode": "000644"
-              }
-            },
-            "commands": {
-              "10_fetch_init_bitbucket": {
-                "command": "curl https://raw.githubusercontent.com/pclermont/atl-aws-template/master/init.d/atl-init-bitbucket.sh >> /tmp/atl-init-bitbucket.sh",
-                "ignoreErrors": "false"
-              },
-              "11_chmod_init_bitbucket": {
-                "command": "chmod 755 /tmp/atl-init-bitbucket.sh && chown root:root /tmp/atl-init-bitbucket.sh && mv /tmp/atl-init-bitbucket.sh /etc/init.d/atl-init-bitbucket",
-                "ignoreErrors": "false"
-              }
-            }
-          },
-          "startservices": {
-            "commands": {
-              "20_init_volume": {
-                "command": "/etc/init.d/atl-init-10-volume start",
-                "ignoreErrors": "false"
-              },
-              "30_init_instance_store": {
-                "command": "/etc/init.d/atl-init-20-instance-store start",
-                "ignoreErrors": "false"
-              },
-              "40_init_products": {
-                "command": "/etc/init.d/atl-init-40-products start",
-                "ignoreErrors": "false"
-              }
-            }
-          }
-        }
-      },
-      "Properties": {
-        "BlockDeviceMappings": [{
-          "DeviceName": "/dev/xvda",
-          "Ebs" : {
-            "VolumeSize" : "50",
-            "VolumeType": "gp2",
-            "DeleteOnTermination": "true"
-          }
-        }],
-        "IamInstanceProfile": {
-          "Fn::If": [
-            "NotJiraProduct",
-            { "Ref": "ClusterNodeInstanceProfile" },
-            { "Ref": "AWS::NoValue" }
-          ]
-        },
-        "KeyName": {
-          "Ref": "KeyName"
-        },
-        "ImageId": "ami-9c0783f8",
-        "InstanceType": {
-          "Ref": "ClusterNodeInstanceType"
-        },
-        "SecurityGroups": [{
-          "Ref": "AppSecurityGroup"
-        }],
-        "UserData": {
-          "Fn::Base64": {
-            "Fn::Join": [
-              "", [
-                "#!/bin/bash -xe\n",
-                "yum update -y aws-cfn-bootstrap\n",
-                "/opt/aws/bin/cfn-init -v  ",
-                "         --stack ", {
-                  "Ref": "AWS::StackName"
-                },
-                "         --resource ClusterNodeLaunchConfig ",
-                "         --region ", {
-                  "Ref": "AWS::Region"
-                },
-                "\n",
-                "/opt/aws/bin/cfn-signal -e $? ",
-                "         --stack ", {
-                  "Ref": "AWS::StackName"
-                },
-                "         --resource ClusterNodeGroup ",
-                "         --region ", {
-                  "Ref": "AWS::Region"
-                },
-                "\n"
-              ]
-            ]
-          }
-        }
-      }
-    },
-    "LoadBalancer": {
-      "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
-      "Condition": "NotConfluenceProduct",
-      "Properties": {
-        "AppCookieStickinessPolicy": [{
-          "CookieName":  { "Fn::If": ["isNotVersion4X", "BITBUCKETSESSIONID", "JSESSIONID"] },
-          "PolicyName": "JSessionIdStickiness"
-        }],
-        "ConnectionDrainingPolicy": {
-          "Enabled": true,
-          "Timeout": 300
-        },
-        "ConnectionSettings": {
-          "IdleTimeout": 3600
-        },
-        "CrossZone": "true",
-        "Listeners": [{
-          "LoadBalancerPort": "80",
-          "Protocol": "HTTP",
-          "InstancePort": {
-            "Fn::If": [
-              "BitbucketProduct",
-              "7990",
-              "8080"
-            ]
-          },
-          "InstanceProtocol": "HTTP",
-          "PolicyNames": [
-            "JSessionIdStickiness"
-          ]
-        }, {
-          "Fn::If": [
-            "DoSSL", {
-              "LoadBalancerPort": "443",
-              "Protocol": "HTTPS",
-              "InstancePort": { "Fn::If": [ "BitbucketProduct", "7990", "8080"]},
-              "InstanceProtocol": "HTTP",
-              "PolicyNames": [
-                "JSessionIdStickiness"
-              ],
-              "SSLCertificateId": {
-                "Fn::Join": [
-                  "", [
-                    "arn:aws:acm:",
-                    { "Ref": "AWS::Region" },
-                    ":",
-                    {
-                      "Ref": "AWS::AccountId"
-                    },
-                    ":certificate/", {
-                      "Ref": "SSLCertificateId"
-                    }
-                  ]
-                ]
-              }
-            }, {
-              "Ref": "AWS::NoValue"
-            }
-          ]},
-          {
-            "Fn::If": [
-              "BitbucketProduct",
-              {
-                "LoadBalancerPort": "7999",
-                "Protocol": "TCP",
-                "InstancePort": "7999",
-                "InstanceProtocol": "TCP"
-              },
-              { "Ref": "AWS::NoValue" }
-            ]
-          }],
-        "HealthCheck": {
-          "Target": { "Fn::If": [ "BitbucketProduct", "HTTP:7990/status", "TCP:8080"]},
-          "Timeout": "29",
-          "Interval": "30",
-          "UnhealthyThreshold": "2",
-          "HealthyThreshold": "2"
-        },
-        "Scheme": "internal",
-        "SecurityGroups": [{
-          "Ref": "LBSecurityGroup"
-        }],
-        "Subnets": {
-          "Ref": "Subnets"
-        }
-      }
-    },
-    "AppSecurityGroup": {
-      "Type": "AWS::EC2::SecurityGroup",
-      "Properties": {
-        "GroupDescription": "Security group allowing SSH and HTTP/HTTPS access",
-        "VpcId": {
-          "Ref": "VPC"
-        },
-        "SecurityGroupIngress": [
-          {
-            "IpProtocol": "tcp",
-            "FromPort": "22",
-            "ToPort": "22",
-            "CidrIp": { "Ref": "AdminNetwork" }
-          },
-          {
-            "Fn::If": [
-              "BitbucketProduct",
-              {
-                "IpProtocol": "tcp",
-                "FromPort": "7990",
-                "ToPort": "7999",
-                "SourceSecurityGroupId": {
-                  "Ref": "LBSecurityGroup"
-                }
-              },
-              {
-                "IpProtocol": "tcp",
-                "FromPort": "8080",
-                "ToPort": "8080",
-                "SourceSecurityGroupId": {
-                  "Ref": "LBSecurityGroup"
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
     "DBSecurityGroup": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
-        "GroupDescription": "Security group allowing SSH and HTTP/HTTPS access",
+        "GroupDescription": "Security group associated with the Database",
         "VpcId": {
           "Ref": "VPC"
         },
-        "SecurityGroupIngress": [
+        "Tags": [
           {
-            "IpProtocol": "tcp",
-            "FromPort": "5432",
-            "ToPort": "5432",
-            "SourceSecurityGroupId": {
-              "Ref": "AppSecurityGroup"
+            "Key": "application",
+            "Value": {
+              "Ref": "Application"
+            }
+          },
+          {
+            "Key": "environment",
+            "Value": {
+              "Fn::FindInMap": [
+                "EnvironmentLookups",
+                "EnvNameToPretty",
+                {
+                  "Ref": "EnvironmentName"
+                }
+              ]
+            }
+          },
+          {
+            "Key": "MonitoringProfile",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "Application"
+                  },
+                  "SG"
+                ]
+              ]
+            }
+          },
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "SecurityGroup"
+                ]
+              ]
+            }
+          },
+          {
+            "Key": "stackId",
+            "Value": {
+              "Ref": "StackId"
             }
           }
         ]
       }
     },
-    "LBSecurityGroup": {
-      "Type": "AWS::EC2::SecurityGroup",
-      "Properties": {
-        "GroupDescription": "Security group allowing SSH and HTTP/HTTPS access",
-        "VpcId": {
-          "Ref": "VPC"
-        },
-        "SecurityGroupIngress": [
-          {
-            "IpProtocol": "tcp",
-            "FromPort": "22",
-            "ToPort": "22",
-            "CidrIp": { "Ref": "AdminNetwork" }
-          },
-          {
-            "IpProtocol": "tcp",
-            "FromPort": "80",
-            "ToPort": "80",
-            "CidrIp": "0.0.0.0/0"
-          },
-          {
-            "IpProtocol": "tcp",
-            "FromPort": "443",
-            "ToPort": "443",
-            "CidrIp": "0.0.0.0/0"
-          },
-          {
-            "Fn::If": [
-              "BitbucketProduct",
-              {
-                "IpProtocol": "tcp",
-                "FromPort": "7999",
-                "ToPort": "7999",
-                "CidrIp": "0.0.0.0/0"
-              },
-              { "Ref": "AWS::NoValue" }
-            ]
-          }
-        ]
-      }
-    },
-    "AppSecurityGroupIngress": {
+    "DBSecurityGroupIngress": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
         "GroupId": {
-          "Ref": "AppSecurityGroup"
-        },
-        "IpProtocol": "-1",
-        "FromPort": "-1",
-        "ToPort": "-1",
-        "SourceSecurityGroupId": {
-          "Ref": "AppSecurityGroup"
-        }
-      }
-    },
-    "SecurityGroupIngressNFSServer": {
-      "Type": "AWS::EC2::SecurityGroupIngress",
-      "Properties": {
-        "GroupId": {
-          "Ref": "NFSServerSecurityGroup"
+          "Ref": "DBSecurityGroup"
         },
         "IpProtocol": "tcp",
-        "FromPort": "2049",
-        "ToPort": "2049",
+        "FromPort": {
+          "Fn::GetAtt": [
+            "DB",
+            "Endpoint.Port"
+          ]
+        },
+        "ToPort": {
+          "Fn::GetAtt": [
+            "DB",
+            "Endpoint.Port"
+          ]
+        },
         "SourceSecurityGroupId": {
-          "Ref": "AppSecurityGroup"
+          "Ref": "ClientDBSecurityGroup"
         }
       }
     },
-    "SynchcronyClusterNodeGroup": {
-      "Type": "AWS::AutoScaling::AutoScalingGroup",
-      "Condition": "ConfluenceProduct",
+    "ClientDBSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
-        "DesiredCapacity": {
-          "Ref": "SynchcronyClusterNodeMin"
+        "GroupDescription": "Security group allowing to talk to the Database",
+        "VpcId": {
+          "Ref": "VPC"
         },
-        "LaunchConfigurationName": {
-          "Ref": "SynchcronyClusterNodeLaunchConfig"
-        },
-        "MaxSize": {
-          "Ref": "SynchcronyClusterNodeMax"
-        },
-        "MinSize": {
-          "Ref": "SynchcronyClusterNodeMin"
-        },
-        "TargetGroupARNs": [{ "Ref": "SynchronyTargetGroup" }],
-        "VPCZoneIdentifier": {
-          "Ref": "Subnets"
-        },
-        "Tags": [{
-          "Key": "Name",
-          "Value": "Synchrony Node",
-          "PropagateAtLaunch": true
-        }, {
-          "Key": "Cluster",
-          "Value": {
-            "Ref": "AWS::StackName"
-          },
-          "PropagateAtLaunch": true
-        }]
-      }
-    },
-    "SynchcronyClusterNodeLaunchConfig": {
-      "Type": "AWS::AutoScaling::LaunchConfiguration",
-      "Condition": "ConfluenceProduct",
-      "DependsOn": [
-        "DB"
-      ],
-      "Metadata": {
-        "Comment": "",
-        "AWS::CloudFormation::Init": {
-          "configSets": {
-            "default" : [
-              "install",
-              "common",
-              "synchcrony",
-              "startservices"
-            ]
-          },
-          "install": {
-            "files": {
-              "/etc/sysconfig/atl": {
-                "content": {
-                  "Fn::Join": [
-                    "", [
-                      "ATL_LOG=/var/log/atl.log\n",
-                      "ATL_APP_DATA_MOUNT_ENABLED=true\n",
-                      "ATL_APP_DATA_BLOCK_DEVICE=/dev/xvdf\n",
-                      "ATL_APP_DATA_MOUNT=\"/media/atl\"\n",
-                      "ATL_APP_DATA_DIR=\"/var/atlassian/application-data\"\n",
-                      "ATL_APP_DATA_FS_TYPE=\"zfs\"\n",
-                      "ATL_JVM_MINIMUM_MEMORY=\"",
-                      {
-                        "Ref": "JVMMinimumMemory"
-                      },
-                      "m\"\n",
-                      "ATL_JVM_MAXIMUM_MEMORY=\"",
-                      {
-                        "Ref": "JVMMaximumMemory"
-                      },
-                      "m\"\n",
-                      "ATL_INSTANCE_STORE_BLOCK_DEVICE=\"/dev/xvdb\"\n",
-                      "ATL_INSTANCE_STORE_MOUNT=\"/media/ephemeral0\"\n",
-                      "ATL_APP_NFS_SERVER=false\n",
-                      "ATL_RELEASE_S3_BUCKET=atlassian-software\n",
-                      "ATL_RELEASE_S3_PATH=\"releases\"\n",
-                      "ATL_HOST_NAME=\n",
-                      "ATL_POSTGRES_ENABLED=true\n",
-                      "ATL_NGINX_ENABLED=false\n",
-                      "ATL_SSL_SELF_CERT_ENABLED=false\n",
-                      "ATL_SSL_SELF_CERT_COUNTRY=US\n",
-                      "ATL_SSL_SELF_CERT_STATE=CA\n",
-                      "ATL_SSL_SELF_CERT_LOCALE=\"San Francisco\"\n",
-                      "ATL_SSL_SELF_CERT_ORG=\"An Atlassian Customer\"\n",
-                      "ATL_SSL_SELF_CERT_ORG_UNIT=\"An Atlassian Customer's Team\"\n",
-                      "ATL_SSL_SELF_CERT_EMAIL_ADDRESS=sales@atlassian.com\n",
-                      "ATL_SSL_SELF_CERT_PATH=/etc/nginx/ssl/self-ssl.crt\n",
-                      "ATL_SSL_SELF_CERT_KEY_PATH=/etc/nginx/ssl/self-ssl.key\n"
-                    ]
-                  ]
-                }
-              }
-            },
-            "packages" : {
-              "yum" : {
-                "nginx" : []
-              }
-            }
-          },
-          "common": {
-            "files": {
-              "/etc/cfn/cfn-hup.conf": {
-                "content": {
-                  "Fn::Join": [
-                    "", [
-                      "[main]\n",
-                      "stack=", {
-                        "Ref": "AWS::StackId"
-                      },
-                      "\n",
-                      "region=", {
-                        "Ref": "AWS::Region"
-                      },
-                      "\n"
-                    ]
-                  ]
-                },
-                "mode": "000400",
-                "owner": "root",
-                "group": "root"
-              },
-              "/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
-                "content": {
-                  "Fn::Join": [
-                    "", [
-                      "[cfn-auto-reloader-hook]\n",
-                      "triggers=post.update\n",
-                      "path=Resources.ClusterNodeLaunchConfig.Metadata.AWS::CloudFormation::Init\n",
-                      "action=/opt/aws/bin/cfn-init -v ",
-                      "         --stack ", {
-                        "Ref": "AWS::StackName"
-                      },
-                      "         --resource ClusterNodeLaunchConfig ",
-                      "         --region ", {
-                        "Ref": "AWS::Region"
-                      },
-                      "\n",
-                      "runas=root\n"
-                    ]
-                  ]
-                }
-              }
-            },
-            "commands": {
-              "001_yum_update": {
-                "command": "yum -y update",
-                "ignoreErrors": "false"
-              },
-              "010_make_mount_point": {
-                "command": "mkdir -p /media/atl",
-                "ignoreErrors": "false"
-              },
-              "020_add_nfs_mount": {
-                "command": {
-                  "Fn::Join": [
-                    "", [
-                      "echo ", {
-                        "Ref": "NFSServer"
-                      }
-                    ,
-                      ":/nfs/ /media/atl nfs4 noatime,intr,rsize=32768,wsize=32768 0 0 >>/etc/fstab"
-                    ]
-                  ]
-                },
-                "ignoreErrors": "false"
-              },
-              "030_mount_all": {
-                "command": "mount -a",
-                "ignoreErrors": "false"
-              },
-              "040_make_shared_home_dir": {
-                "command": "mkdir -p /media/atl/jira/shared",
-                "ignoreErrors": "false"
-              },
-              "050_remove_java_openjdk": {
-                "command": "yum -y remove java-1.7.0-openjdk.x86_64",
-                "ignoreErrors": "false"
-              },
-              "060_install_jq": {
-                "command": "yum -y install jq",
-                "ignoreErrors": "false"
-              },
-              "070_fetch_atlassian_functions": {
-                "command": "curl https://raw.githubusercontent.com/pclermont/atl-aws-template/master/init.d/atl-functions >> /tmp/atl-functions",
-                "ignoreErrors": "false"
-              },
-              "071_move_atlassian_functions": {
-                "command": "mv /tmp/atl-functions /etc/init.d/atl-functions && sudo chown root:root /etc/init.d/atl-functions",
-                "ignoreErrors": "false"
-              },
-              "080_fetch_update_hostname_script": {
-                "command": "curl https://raw.githubusercontent.com/pclermont/atl-aws-template/master/bin/atl-update-host-name.sh -o /tmp/atl-update-host-name.sh",
-                "ignoreErrors": "false"
-              },
-              "081_move_hostname_script": {
-                "command": "mkdir -p /opt/atlassian/bin && sudo mv /tmp/atl-update-host-name.sh /opt/atlassian/bin/atl-update-host-name.sh && sudo chmod +x /opt/atlassian/bin/atl-update-host-name.sh && sudo chown root:root /opt/atlassian/bin/atl-update-host-name.sh",
-                "ignoreErrors": "false"
-              },
-              "090_fetch_init_volumes": {
-                "command": "curl https://raw.githubusercontent.com/pclermont/atl-aws-template/master/init.d/atl-init-10-volume.sh >> /tmp/atl-init-10-volume",
-                "ignoreErrors": "false"
-              },
-              "100_fetch_init_instance_store": {
-                "command": "curl https://raw.githubusercontent.com/pclermont/atl-aws-template/master/init.d/atl-init-20-instance-store.sh >> /tmp/atl-init-20-instance-store",
-                "ignoreErrors": "false"
-              },
-              "110_fetch_init_products": {
-                "command": "curl https://raw.githubusercontent.com/pclermont/atl-aws-template/master/init.d/atl-init-40-products.sh >> /tmp/atl-init-40-products",
-                "ignoreErrors": "false"
-              },
-              "120_mv_init_scripts": {
-                "command": "sudo chown root:root /tmp/atl-init-* && sudo chmod 755 /tmp/atl-init-* && mv /tmp/atl-init-* /etc/init.d/",
-                "ignoreErrors": "false"
-              }
-            },
-            "services": {
-              "sysvinit": {
-                "cfn-hup": {
-                  "enabled": "true",
-                  "ensureRunning": "true",
-                  "files": [
-                    "/etc/cfn/cfn-hup.conf",
-                    "/etc/cfn/hooks.d/cfn-auto-reloader.conf"
-                  ]
-                },
-                "rpcbind": {
-                  "enabled": "true",
-                  "ensureRunning": "true",
-                  "packages": {
-                    "yum": [
-                      "nfs-utils"
-                    ]
-                  }
-                }
-              }
-            },
-            "packages" : {
-              "yum" : {
-                "postgresql94" : []
-              }
-            }
-          },
-          "synchcrony": {
-            "files": {
-              "/etc/atl": {
-                "content": {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "ATL_SYNCHRONY_SERVICE_URL=",
-                      { "Fn::Sub" : [
-                          "${Protocol}://${LoadBalancerName}/synchrony/v1",
-                          {
-                            "Protocol": {
-                            "Fn::If": [
-                              "DoSSL",
-                              "https",
-                              "http"
-                            ]
-                          },
-                            "LoadBalancerName": {
-                              "Ref": "CustomDnsName"
-                            }
-                          }
-                        ]
-                      },
-                      "\n",
-                      "ATL_APP_DATA_MOUNT_ENABLED=false\n",
-                      "ATL_SYNCHRONY_WAITING_CONFIG_TIME=20\n",
-                      "ATL_SYNCHRONY_STACK_SPACE=-Xss2048k\n",
-                      "ATL_SYNCHRONY_MEMORY=-Xmx2g\n",
-                      "ATL_DB_NAME=confluence\n",
-                      "ATL_DB_USER=confluence\n",
-                      "ATL_DB_PASSWORD=",
-                      {
-                        "Ref": "DBMasterUserPassword"
-                      },
-                      "\n",
-                      "ATL_DB_HOST=",
-                      {
-                        "Fn::GetAtt": [
-                          "DB",
-                          "Endpoint.Address"
-                        ]
-                      },
-                      "\n",
-                      "ATL_DB_PORT=",
-                      {
-                        "Fn::GetAtt": [
-                          "DB",
-                          "Endpoint.Port"
-                        ]
-                      },
-                      "\n",
-                      "ATL_JDBC_DRIVER=org.postgresql.Driver\n",
-                      "ATL_JDBC_URL=jdbc:postgresql://",
-                      {
-                        "Fn::GetAtt": [
-                          "DB",
-                          "Endpoint.Address"
-                        ]
-                      },
-                      ":",
-                      {
-                        "Fn::GetAtt": [
-                          "DB",
-                          "Endpoint.Port"
-                        ]
-                      },
-                      "/confluence\n",
-                      "ATL_JDBC_USER=confluence\n",
-                      "ATL_JDBC_PASSWORD=",
-                      {
-                        "Ref": "DBPassword"
-                      },
-                      "\n",
-                      "ATL_ENABLED_PRODUCTS=Synchrony\n",
-                      "ATL_ENABLED_SHARED_HOMES=\n",
-                      "ATL_CONFLUENCE_NAME=confluence\n",
-                      "ATL_CONFLUENCE_SHORT_DISPLAY_NAME=\"Confluence\"\n",
-                      "ATL_CONFLUENCE_FULL_DISPLAY_NAME=\"Atlassian Confluence\"\n",
-                      "ATL_CONFLUENCE_USER=confluence\n",
-                      "ATL_CONFLUENCE_CONFIG_PROPERTIES=\n",
-                      "ATL_CONFLUENCE_DB_NAME=\"confluence\"\n",
-                      "ATL_CONFLUENCE_VERSION=",
-                      {
-                        "Ref": "Version"
-                      },
-                      "\n",
-                      "ATL_CONFLUENCE_DB_USER=\"confluence\"\n",
-                      "ATL_CONFLUENCE_INSTALL_DIR=/opt/atlassian/confluence\n",
-                      "ATL_CONFLUENCE_HOME=\"/var/atlassian/application-data/confluence\"\n",
-                      "ATL_CONFLUENCE_NGINX_PATH=/\n",
-                      "ATL_POSTGRES_ENABLED=false\n",
-                      "ATL_CONFLUENCE_DATA_CENTER=true\n",
-                      "ATL_HAZELCAST_NETWORK_AWS_IAM_ROLE=",
-                      { "Fn::If": [ "ConfluenceProduct", { "Ref": "ClusterNodeRole" }, ""]},
-                      "\n",
-                      "ATL_HAZELCAST_NETWORK_AWS_IAM_REGION=",
-                      { "Ref": "AWS::Region" },
-                      "\n",
-                      "ATL_HAZELCAST_NETWORK_AWS_TAG_KEY=micros_service_id\n",
-                      "ATL_HAZELCAST_NETWORK_AWS_TAG_VALUE=",
-                      { "Ref": "AWS::StackName" },
-                      "\n",
-                      "ATL_PROXY_NAME=",
-                      {
-                        "Fn::If": [
-                          "UseCustomDnsName",
-                          {
-                            "Ref": "CustomDnsName"
-                          },
-                          {
-                            "Fn::GetAtt": [
-                              "ConfluenceLoadBalancer",
-                              "DNSName"
-                            ]
-                          }
-                        ]
-                      },
-                      "\n",
-                      "ATL_SSL_SELF_CERT_ENABLED=false\n",
-                      {
-                        "Fn::If": [
-                          "DoSSL",
-                          "ATL_SSL_PROXY=true\n",
-                          {
-                            "Ref": "AWS::NoValue"
-                          }
-                        ]
-                      },
-                      "ATL_AWS_STACK_NAME=",
-                      { "Ref": "AWS::StackName"},
-                      "\n",
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "ATL_SSLKeystorePassword=",
-                            { "Ref": "SSLKeystorePassword" },
-                            "\n"
-                          ]
-                        ]
-                      },
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "ATL_SSLKeystoreBucket=",
-                            { "Ref": "SSLKeystoreBucket" },
-                            "\n"
-                          ]
-                        ]
-                      },
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "ATL_SSLKeystore=",
-                            { "Ref": "SSLKeystore" },
-                            "\n"
-                          ]
-                        ]
-                      }
-                    ]
-                  ]
-                }
-              }
-            },
-            "commands": {
-              "10_fetch_init_synchcrony": {
-                "command": "curl https://raw.githubusercontent.com/pclermont/atl-aws-template/master/init.d/atl-init-synchrony.sh >> /tmp/atl-init-synchrony.sh",
-                "ignoreErrors": "false"
-              },
-              "11_chmod_init_synchcrony": {
-                "command": "chmod 755 /tmp/atl-init-synchrony.sh && chown root:root /tmp/atl-init-synchrony.sh && mv /tmp/atl-init-synchrony.sh /etc/init.d/atl-init-synchrony",
-                "ignoreErrors": "false"
-              },
-              "20_fetch_init_confluence_common": {
-                "command": "curl https://raw.githubusercontent.com/pclermont/atl-aws-template/master/init.d/atl-confluence-common  >> /tmp/atl-confluence-common",
-                "ignoreErrors": "false"
-              },
-              "21_chmod_init_confluence_common": {
-                "command": "chmod 755 /tmp/atl-confluence-common && chown root:root /tmp/atl-confluence-common && mv /tmp/atl-confluence-common /etc/init.d/atl-confluence-common",
-                "ignoreErrors": "false"
-              }
-            }
-          },
-          "startservices": {
-            "commands": {
-              "20_init_volume": {
-                "command": "/etc/init.d/atl-init-10-volume start",
-                "ignoreErrors": "false"
-              },
-              "30_init_instance_store": {
-                "command": "/etc/init.d/atl-init-20-instance-store start",
-                "ignoreErrors": "false"
-              },
-              "40_init_products": {
-                "command": "/etc/init.d/atl-init-40-products start",
-                "ignoreErrors": "false"
-              }
-            }
-          }
-        }
-      },
-      "Properties": {
-        "BlockDeviceMappings": [{
-          "DeviceName": "/dev/xvdf",
-          "Ebs": {},
-          "NoDevice": true
-        }],
-        "IamInstanceProfile": {
-          "Fn::If": [
-            "NotJiraProduct",
-            { "Ref": "ClusterNodeInstanceProfile" },
-            { "Ref": "AWS::NoValue" }
-          ]
-        },
-        "KeyName": {
-          "Ref": "KeyName"
-        },
-        "ImageId": "ami-9c0783f8",
-        "InstanceType": {
-          "Ref": "SynchcronyClusterNodeInstanceType"
-        },
-        "SecurityGroups": [{
-          "Ref": "AppSecurityGroup"
-        }],
-        "UserData": {
-          "Fn::Base64": {
-            "Fn::Join": [
-              "", [
-                "#!/bin/bash -xe\n",
-                "yum update -y aws-cfn-bootstrap\n",
-                "/opt/aws/bin/cfn-init -v  ",
-                "         --stack ", {
-                  "Ref": "AWS::StackName"
-                },
-                "         --resource SynchcronyClusterNodeLaunchConfig ",
-                "         --region ", {
-                  "Ref": "AWS::Region"
-                },
-                "\n",
-                "/opt/aws/bin/cfn-signal -e $? ",
-                "         --stack ", {
-                  "Ref": "AWS::StackName"
-                },
-                "         --resource SynchcronyClusterNodeGroup ",
-                "         --region ", {
-                  "Ref": "AWS::Region"
-                },
-                "\n"
+        "SecurityGroupEgress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": {
+              "Fn::GetAtt": [
+                "DB",
+                "Endpoint.Port"
               ]
-            ]
-          }
-        }
-      }
-    },
-    "ConfluenceLoadBalancer": {
-      "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
-      "Condition": "ConfluenceProduct",
-      "Properties": {
-        "LoadBalancerAttributes": [
-          {
-            "Key": "idle_timeout.timeout_seconds",
-            "Value": "300"
-          }
-        ],
-        "Scheme": "internal",
-        "Subnets": {
-          "Ref": "Subnets"
-        },
-        "SecurityGroups": [
-          {
-            "Ref": "LBSecurityGroup"
-          }
-        ]
-      }
-    },
-    "ConfluenceLoadBalancerListener": {
-      "Type": "AWS::ElasticLoadBalancingV2::Listener",
-      "Condition": "ConfluenceProduct",
-      "Properties": {
-        "Certificates": [
-          {
-            "CertificateArn": {
-              "Fn::If": [
-                "DoSSL",
-                {
-                  "Fn::Sub": [
-                    "arn:aws:acm:${Region}:${AccountId}:certificate/${SSLCertificateId}",
-                    {
-                      "AccountId": { "Ref": "AWS::AccountId" },
-                      "Region": { "Ref": "AWS::Region" },
-                      "SSLCertificateId": {
-                        "Ref": "SSLCertificateId"
-                      }
-                    }
-                  ]
-                },
-                {
-                  "Ref": "AWS::NoValue"
-                }
+            },
+            "ToPort": {
+              "Fn::GetAtt": [
+                "DB",
+                "Endpoint.Port"
               ]
+            },
+            "DestinationSecurityGroupId": {
+              "Ref": "DBSecurityGroup"
             }
-          }],
-        "DefaultActions": [
-          {
-            "Type": "forward",
-            "TargetGroupArn": { "Ref": "MainTargetGroup" }
-          }
-        ],
-        "LoadBalancerArn": { "Ref": "ConfluenceLoadBalancer" },
-        "Port": {
-          "Fn::If": [
-            "DoSSL",
-            "443",
-            "80"
-          ]
-        },
-        "Protocol":{
-          "Fn::If": [
-            "DoSSL",
-            "HTTPS",
-            "HTTP"
-          ]
-        }
-
-      }
-    },
-    "SynchronyListenerRule": {
-      "Type": "AWS::ElasticLoadBalancingV2::ListenerRule",
-      "Condition": "ConfluenceProduct",
-      "Properties": {
-        "Actions": [
-          {
-            "Type": "forward",
-            "TargetGroupArn": { "Ref": "SynchronyTargetGroup" }
-          }
-        ],
-        "Conditions": [
-          {
-            "Field": "path-pattern",
-            "Values": [
-              "/synchrony/*"
-            ]
-          }
-        ],
-        "ListenerArn": { "Ref": "ConfluenceLoadBalancerListener" },
-        "Priority": "1"
-      }
-    },
-    "MainTargetGroup": {
-      "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
-      "Condition": "ConfluenceProduct",
-      "DependsOn": "ConfluenceLoadBalancer",
-      "Properties": {
-        "Port": "8080",
-        "Protocol": "HTTP",
-        "VpcId": { "Ref": "VPC" },
-        "HealthCheckIntervalSeconds": "30",
-        "HealthCheckTimeoutSeconds": "10",
-        "HealthyThresholdCount": "4",
-        "Matcher": { "HttpCode": "200" },
-        "HealthCheckPath": "/status",
-        "HealthCheckPort": "8080",
-        "HealthCheckProtocol": "HTTP",
-        "TargetGroupAttributes": [
-          {
-            "Key": "stickiness.enabled",
-            "Value": "true"
-          },
-          {
-            "Key": "stickiness.type",
-            "Value": "lb_cookie"
           }
         ],
         "Tags": [
           {
-            "Key": "Name",
-            "Value": "MainTargetGroup"
+            "Key": "application",
+            "Value": {
+              "Ref": "Application"
+            }
           },
           {
-            "Key": "Cluster",
-            "Value": { "Ref": "AWS::StackName" }
-          }
-        ]
-      }
-    },
-    "SynchronyTargetGroup": {
-      "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
-      "Condition": "ConfluenceProduct",
-      "DependsOn": "ConfluenceLoadBalancer",
-      "Properties": {
-        "Port": "8091",
-        "Protocol": "HTTP",
-        "VpcId": { "Ref": "VPC" },
-        "HealthCheckIntervalSeconds": "30",
-        "HealthCheckTimeoutSeconds": "10",
-        "HealthyThresholdCount": "4",
-        "Matcher": { "HttpCode": "200" },
-        "HealthCheckPath": "/synchrony/heartbeat",
-        "HealthCheckPort": "8091",
-        "HealthCheckProtocol": "HTTP",
-        "TargetGroupAttributes": [
-          {
-            "Key": "stickiness.enabled",
-            "Value": "true"
+            "Key": "environment",
+            "Value": {
+              "Fn::FindInMap": [
+                "EnvironmentLookups",
+                "EnvNameToPretty",
+                {
+                  "Ref": "EnvironmentName"
+                }
+              ]
+            }
           },
           {
-            "Key": "stickiness.type",
-            "Value": "lb_cookie"
-          }
-        ],
-        "Tags": [
+            "Key": "MonitoringProfile",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "Application"
+                  },
+                  "SG"
+                ]
+              ]
+            }
+          },
           {
             "Key": "Name",
-            "Value": "SynchronyTargetGroup"
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "ClientSecurityGroup"
+                ]
+              ]
+            }
           },
           {
-            "Key": "Cluster",
-            "Value": { "Ref": "AWS::StackName" }
+            "Key": "stackId",
+            "Value": {
+              "Ref": "StackId"
+            }
           }
         ]
       }
     }
   },
   "Outputs": {
-    "JIRAURL": {
-      "Description": "The URL of JIRA Data Center instance",
-      "Condition": "JiraProduct",
+    "EndPoint": {
+      "Description": "Atlassian Template Database Endpoint",
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-EndPoint"
+        }
+      },
       "Value": {
-        "Fn::Join": [
-          "", [{
-            "Fn::If": [
-              "DoSSL",
-              "https",
-              "http"
-            ]
-          },
-            "://", {
-              "Fn::If": [
-                "UseCustomDnsName", {
-                  "Ref": "CustomDnsName"
-                },
-                {
-                  "Fn::If": [
-                    "ConfluenceProduct",
-                    {
-                      "Fn::GetAtt": [
-                        "ConfluenceLoadBalancer",
-                        "DNSName"
-                      ]
-                    },
-                    {
-                      "Fn::GetAtt": [
-                        "LoadBalancer",
-                        "DNSName"
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+        "Fn::GetAtt": [
+          "DB",
+          "Endpoint.Address"
         ]
       }
     },
-    "LoadBalancerURL": {
-      "Description": "The Load Balancer URL",
+    "ClientSecurityGroup": {
+      "Description": "Atlassian Template Database Client Security Group",
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-ClientSecurityGroup"
+        }
+      },
       "Value": {
-        "Fn::Join": [
-          "", [{
-            "Fn::If": [
-              "DoSSL",
-              "https",
-              "http"
-            ]
-          },
-            "://",
-            {
-              "Fn::If": [
-                "NotConfluenceProduct",
-                {
-                  "Fn::GetAtt": [
-                    "LoadBalancer",
-                    "DNSName"
-                  ]
-                },
-                {
-                  "Fn::GetAtt": [
-                    "ConfluenceLoadBalancer",
-                    "DNSName"
-                  ]
-                }
-              ]
-            }
-          ]
+        "Ref": "ClientDBSecurityGroup"
+      }
+    },
+    "Port": {
+      "Description": "Atlassian Template Database Port",
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-Port"
+        }
+      },
+      "Value": {
+        "Fn::GetAtt": [
+          "DB",
+          "Endpoint.Port"
         ]
       }
     }

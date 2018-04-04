@@ -1,72 +1,38 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "Atlassian Database Solution Template",
+  "Mappings": {
+    "EnvironmentLookups": {
+      "EnvNameToPretty": {
+        "dv": "Dev",
+        "it": "Int",
+        "np": "NonPrd",
+        "pr": "Prd",
+        "ua": "UAT"
+      }
+    }
+  },
   "Parameters": {
-    "DBInstanceClass": {
-      "Description": "RDS instance type",
+    "Application": {
+      "Description": "Application Name",
       "Type": "String",
-      "Default": "db.m4.xlarge",
+      "ConstraintDescription": "Must be the name of the Application this will be used for"
+    },
+    "EnvironmentName": {
       "AllowedValues": [
-        "db.m4.large",
-        "db.m4.xlarge",
-        "db.m4.2xlarge",
-        "db.m4.4xlarge",
-        "db.m4.10xlarge",
-        "db.r3.large",
-        "db.r3.xlarge",
-        "db.r3.2xlarge",
-        "db.r3.4xlarge",
-        "db.r3.8xlarge",
-        "db.t2.medium",
-        "db.t2.large"
+        "dv",
+        "it",
+        "ut",
+        "pr",
+        "np"
       ],
-      "ConstraintDescription": "Must be a valid RDS instance class, 'db.t2.medium' or larger."
+      "Description": "Environment name (dv, it, ut, pr, np)",
+      "Type": "String"
     },
-    "DBMasterUserPassword": {
-      "NoEcho": "true",
-      "Default": "",
-      "Description": "Database admin account password.",
+    "StackId": {
+      "Description": "Stack id",
       "Type": "String",
-      "MaxLength": "41",
-      "AllowedPattern": "[a-zA-Z0-9]*",
-      "ConstraintDescription": "Must be at least 8 alphanumeric characters."
-    },
-    "DBSubnets": {
-      "Description": "Subnets (two or more) where Database will be deployed. MUST be within the selected VPC.",
-      "Type": "List<AWS::EC2::Subnet::Id>",
-      "ConstraintDescription": "Must be a list of two or more Subnet ID's within the selected VPC."
-    },
-    "DBStorage": {
-      "Description": "Database allocated storage size, in gigabytes (GB)",
-      "Type": "Number",
-      "Default": "10"
-    },
-    "DBStorageType": {
-      "Description": "Database storage type",
-      "Type": "String",
-      "Default": "General Purpose (SSD)",
-      "AllowedValues": [
-        "General Purpose (SSD)",
-        "Provisioned IOPS"
-      ],
-      "ConstraintDescription": "Must be 'General Purpose (SSD)' or 'Provisioned IOPS'."
-    },
-    "DBMultiAZ": {
-      "Type": "String",
-      "Default": "true",
-      "AllowedValues": [
-        "true",
-        "false"
-      ],
-      "ConstraintDescription": "Must be 'true' or 'false'."
-    },
-    "DBIops": {
-      "Description": "Must be in the range of 1000 - 30000 and a multiple of 1000. This value is only used with Provisioned IOPS. Note: The ratio of IOPS per allocated-storage must be between 3.00 and 10.00.",
-      "Type": "Number",
-      "Default": "1000",
-      "MinValue": "1000",
-      "MaxValue": "30000",
-      "ConstraintDescription": "Must be in the range 1000 - 30000."
+      "ConstraintDescription": "Stack id"
     },
     "VPC": {
       "Description": "Virtual Private Cloud",
@@ -74,150 +40,361 @@
       "ConstraintDescription": "Must be the ID of a VPC."
     }
   },
-  "Conditions": {
-    "DBProvisionedIops": {
-      "Fn::Equals": [
-        {
-          "Ref": "DBStorageType"
-        },
-        "Provisioned IOPS"
-      ]
-    },
-    "DoSetDBMasterUserPassword": {
-      "Fn::Not": [
-        {
-          "Fn::Equals": [
-            {
-              "Ref": "DBMasterUserPassword"
-            },
-            ""
-          ]
-        }
-      ]
-    }
-  },
   "Resources": {
-    "DB": {
-      "Type": "AWS::RDS::DBInstance",
-      "Properties": {
-        "AllocatedStorage": {
-          "Ref": "DBStorage"
-        },
-        "DBInstanceClass": {
-          "Ref": "DBInstanceClass"
-        },
-        "DBSubnetGroupName": {
-          "Ref": "DBSubnetGroup"
-        },
-        "Engine": "postgres",
-        "EngineVersion": "9.4.12",
-        "MasterUsername": "postgres",
-        "StorageEncrypted": true,
-        "MasterUserPassword": {
-          "Fn::If": [
-            "DoSetDBMasterUserPassword", {
-              "Ref": "DBMasterUserPassword"
-            }, {
-              "Ref": "AWS::NoValue"
-            }
-          ]
-        },
-        "StorageType": {
-          "Fn::If": [
-            "DBProvisionedIops",
-            "io1",
-            "gp2"
-          ]
-        },
-        "Iops": {
-          "Fn::If": [
-            "DBProvisionedIops", {
-              "Ref": "DBIops"
-            }, {
-              "Ref": "AWS::NoValue"
-            }
-          ]
-        },
-        "MultiAZ": {
-          "Ref": "DBMultiAZ"
-        },
-        "VPCSecurityGroups": [{
-          "Ref": "DBSecurityGroup"
-        }],
-        "Tags": [{
-          "Key": "Name",
-          "Value": "JIRA PostgreSQL Database"
-        }]
-      }
-    },
-    "DBSubnetGroup": {
-      "Type": "AWS::RDS::DBSubnetGroup",
-      "Properties": {
-        "DBSubnetGroupDescription": "DBSubnetGroup",
-        "SubnetIds": {
-          "Ref": "DBSubnets"
-        }
-      }
-    },
-    "DBSecurityGroup": {
+    "ClientEFSSecurityGroup": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
-        "GroupDescription": "Security group associated with the Database",
-        "VpcId": {
-          "Ref": "VPC"
-        },
-        "SecurityGroupIngress": [
-        ]
-      }
-    },
-    "DBSecurityGroupIngress": {
-      "Type": "AWS::EC2::SecurityGroupIngress",
-      "Properties": {
-        "GroupId": {
-          "Ref": "DBSecurityGroup"
-        },
-        "IpProtocol": "tcp",
-        "FromPort": {
-          "Fn::GetAtt": [
-            "DB",
-            "Endpoint.Port"
-          ]
-        },
-        "ToPort": {
-          "Fn::GetAtt": [
-            "DB",
-            "Endpoint.Port"
-          ]
-        },
-        "SourceSecurityGroupId": {
-          "Ref": "ClientDBSecurityGroup"
-        }
-      }
-    },
-    "ClientDBSecurityGroup" : {
-      "Type": "AWS::EC2::SecurityGroup",
-      "Properties": {
-        "GroupDescription": "Security group allowing to talk to the Database",
-        "VpcId": {
-          "Ref": "VPC"
-        },
+        "GroupDescription": "Security group allowing to talk to the EFS Service",
         "SecurityGroupEgress": [
           {
             "IpProtocol": "tcp",
-            "FromPort": {
-              "Fn::GetAtt": [
-                "DB",
-                "Endpoint.Port"
-              ]
-            },
-            "ToPort": {
-              "Fn::GetAtt": [
-                "DB",
-                "Endpoint.Port"
-              ]
-            },
+            "FromPort": 2049,
+            "ToPort": 2049,
             "DestinationSecurityGroupId": {
-              "Ref": "DBSecurityGroup"
+              "Ref": "EFSSecurityGroup"
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "application",
+            "Value": {
+              "Ref": "Application"
+            }
+          },
+          {
+            "Key": "environment",
+            "Value": {
+              "Fn::FindInMap": [
+                "EnvironmentLookups",
+                "EnvNameToPretty",
+                {
+                  "Ref": "EnvironmentName"
+                }
+              ]
+            }
+          },
+          {
+            "Key": "MonitoringProfile",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "Application"
+                  },
+                  "SG"
+                ]
+              ]
+            }
+          },
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "ClientSecurityGroup"
+                ]
+              ]
+            }
+          },
+          {
+            "Key": "stackId",
+            "Value": {
+              "Ref": "StackId"
+            }
+          }
+        ],
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }
+    },
+    "ElasticFileSystem": {
+      "Type": "AWS::EFS::FileSystem",
+      "Properties": {
+        "FileSystemTags": [
+          {
+            "Key": "application",
+            "Value": {
+              "Ref": "Application"
+            }
+          },
+          {
+            "Key": "environment",
+            "Value": {
+              "Fn::FindInMap": [
+                "EnvironmentLookups",
+                "EnvNameToPretty",
+                {
+                  "Ref": "EnvironmentName"
+                }
+              ]
+            }
+          },
+          {
+            "Key": "MonitoringProfile",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "Application"
+                  },
+                  "EFS"
+                ]
+              ]
+            }
+          },
+          {
+            "Key": "Name",
+            "Value": {
+              "Ref": "AWS::StackName"
+            }
+          },
+          {
+            "Key": "stackId",
+            "Value": {
+              "Ref": "StackId"
+            }
+          }
+        ],
+        "Encrypted": true,
+        "KmsKeyId": {
+          "Fn::GetAtt": [
+            "KMSKey",
+            "Arn"
+          ]
+        }
+      }
+    },
+    "EFSMountAz1": {
+      "Type": "AWS::EFS::MountTarget",
+      "Properties": {
+        "FileSystemId": {
+          "Ref": "ElasticFileSystem"
+        },
+        "SecurityGroups": [
+          {
+            "Ref": "EFSSecurityGroup"
+          }
+        ],
+        "SubnetId": {
+          "Fn::ImportValue": "SharedServices-SubnetPrivate1Id"
+        }
+      }
+    },
+    "EFSMountAz2": {
+      "Type": "AWS::EFS::MountTarget",
+      "Properties": {
+        "FileSystemId": {
+          "Ref": "ElasticFileSystem"
+        },
+        "SecurityGroups": [
+          {
+            "Ref": "EFSSecurityGroup"
+          }
+        ],
+        "SubnetId": {
+          "Fn::ImportValue": "SharedServices-SubnetPrivate2Id"
+        }
+      }
+    },
+    "EFSMountAz3": {
+      "Type": "AWS::EFS::MountTarget",
+      "Properties": {
+        "FileSystemId": {
+          "Ref": "ElasticFileSystem"
+        },
+        "SecurityGroups": [
+          {
+            "Ref": "EFSSecurityGroup"
+          }
+        ],
+        "SubnetId": {
+          "Fn::ImportValue": "SharedServices-SubnetPrivate3Id"
+        }
+      }
+    },
+    "EFSSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Security group allowing to talk to the EFS Service",
+        "Tags": [
+          {
+            "Key": "application",
+            "Value": {
+              "Ref": "Application"
+            }
+          },
+          {
+            "Key": "environment",
+            "Value": {
+              "Fn::FindInMap": [
+                "EnvironmentLookups",
+                "EnvNameToPretty",
+                {
+                  "Ref": "EnvironmentName"
+                }
+              ]
+            }
+          },
+          {
+            "Key": "MonitoringProfile",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "Application"
+                  },
+                  "SG"
+                ]
+              ]
+            }
+          },
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "EFSSecurityGroup"
+                ]
+              ]
+            }
+          },
+          {
+            "Key": "stackId",
+            "Value": {
+              "Ref": "StackId"
+            }
+          }
+        ],
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }
+    },
+    "EFSSecurityGroupIngress": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "GroupId": {
+          "Ref": "EFSSecurityGroup"
+        },
+        "IpProtocol": "tcp",
+        "FromPort": 2049,
+        "ToPort": 2049,
+        "SourceSecurityGroupId": {
+          "Ref": "ClientEFSSecurityGroup"
+        }
+      }
+    },
+    "KMSAlias": {
+      "Type": "AWS::KMS::Alias",
+      "Properties": {
+        "AliasName": {
+          "Fn::Join": [
+            "",
+            [
+              "alias/fs/efs",
+              { "Ref": "Application" },
+              "key"
+            ]
+          ]
+        },
+        "TargetKeyId" : { "Ref": "KMSKey" }
+      }
+    },
+    "KMSKey": {
+      "Type": "AWS::KMS::Key",
+      "Properties": {
+        "KeyPolicy": {
+          "Version": "2012-10-17",
+          "Id": "efs-key-atlassian",
+          "Statement": [
+            {
+              "Sid": "Allow administration of the key",
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:aws:iam::",
+                      {
+                        "Ref": "AWS::AccountId"
+                      },
+                      ":role/OrganizationAccountAccessRole"
+                    ]
+                  ]
+                }
+              },
+              "Action": [
+                "kms:*"
+              ],
+              "Resource": "*"
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "application",
+            "Value": {
+              "Ref": "Application"
+            }
+          },
+          {
+            "Key": "environment",
+            "Value": {
+              "Fn::FindInMap": [
+                "EnvironmentLookups",
+                "EnvNameToPretty",
+                {
+                  "Ref": "EnvironmentName"
+                }
+              ]
+            }
+          },
+          {
+            "Key": "MonitoringProfile",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "Application"
+                  },
+                  "KMS"
+                ]
+              ]
+            }
+          },
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "KMS"
+                ]
+              ]
+            }
+          },
+          {
+            "Key": "stackId",
+            "Value": {
+              "Ref": "StackId"
             }
           }
         ]
@@ -225,42 +402,37 @@
     }
   },
   "Outputs": {
-    "EndPoint": {
-      "Description": "Atlassian Template Database Endpoint",
-      "Export": {
-        "Name": {
-          "Fn::Sub": "${AWS::StackName}-EndPoint"
-        }
-      },
-      "Value": {
-        "Fn::GetAtt": [
-          "DB",
-          "Endpoint.Address"
-        ]
-      }
-    },
     "ClientSecurityGroup": {
-      "Description": "Atlassian Template Database Client Security Group",
+      "Description": "Atlassian Template EFS Client Security Group",
       "Export": {
         "Name": {
           "Fn::Sub": "${AWS::StackName}-ClientSecurityGroup"
         }
       },
       "Value": {
-          "Ref": "ClientDBSecurityGroup"
+        "Ref": "ClientEFSSecurityGroup"
       }
     },
-    "Port": {
-      "Description": "Atlassian Template Database Port",
+    "EFSDNS": {
+      "Description": "The URL of EFS",
       "Export": {
         "Name": {
-          "Fn::Sub": "${AWS::StackName}-Port"
+          "Fn::Sub": "${AWS::StackName}-EFS-DNS"
         }
       },
       "Value": {
-        "Fn::GetAtt": [
-          "DB",
-          "Endpoint.Port"
+        "Fn::Join": [
+          "",
+          [
+            {
+              "Ref": "ElasticFileSystem"
+            },
+            ".efs.",
+            {
+              "Ref": "AWS::Region"
+            },
+            ".amazonaws.com"
+          ]
         ]
       }
     }

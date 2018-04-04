@@ -1,0 +1,5 @@
+Jira DB MasterPassword :
+Confluence DB MasterPassword : 44bGL9cELkxtwth
+Confluence DB User Password : TcR992FrprRv
+Jira DB MasterPassword : wB6HaQqBGv72mJD
+Jira DB UserPassword : 6Ryt2MdsfAa7
