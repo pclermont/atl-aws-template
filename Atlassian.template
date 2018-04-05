@@ -596,6 +596,10 @@
               }
             },
             "commands": {
+              "chef": {
+                "commond": "chef-client -o recipe[ff_linux_base_wrapper::launch] -c /var/chef/solo.rb -z",
+                "ignoreErrors": "false"
+              },
               "001_yum_update": {
                 "command": "yum -y update",
                 "ignoreErrors": "false"
