@@ -205,27 +205,31 @@
           {
             "Key": "MonitoringProfile",
             "Value": {
-              "Fn::Join": [
-                "",
-                [
-                  {
-                    "Ref": "Application"
-                  },
-                  "DB"
-                ]
-              ]
+              "Ref": "Application"
             }
           },
           {
             "Key": "Name",
             "Value": {
               "Fn::Join": [
-                "",
+                "-",
                 [
                   {
-                    "Ref": "AWS::StackName"
+                    "Ref": "EnvironmentName"
                   },
-                  "Database"
+                  {
+                    "Fn::FindInMap": [
+                      "ProductNameLowerCase",
+                      "Product",
+                      {
+                        "Ref": "Application"
+                      }
+                    ]
+                  },
+                  "rds",
+                  {
+                    "Ref": "StackId"
+                  }
                 ]
               ]
             }
