@@ -1243,7 +1243,16 @@
               ]
             },
             {
-              "Ref": "AWS::NoValue"
+              "Fn::Join": [
+                "",
+                [
+                  "arn:aws:iam::",
+                  {
+                    "Ref": "AWS::AccountId"
+                  },
+                  ":instance-profile/default-instances"
+                ]
+              ]
             }
           ]
         },
