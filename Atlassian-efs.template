@@ -139,21 +139,33 @@
           {
             "Key": "MonitoringProfile",
             "Value": {
-              "Fn::Join": [
-                "",
-                [
-                  {
-                    "Ref": "Application"
-                  },
-                  "EFS"
-                ]
-              ]
+              "Ref": "Application"
             }
           },
           {
             "Key": "Name",
             "Value": {
-              "Ref": "AWS::StackName"
+              "Fn::Join": [
+                "-",
+                [
+                  {
+                    "Ref": "EnvironmentName"
+                  },
+                  {
+                    "Fn::FindInMap": [
+                      "ProductNameLowerCase",
+                      "Product",
+                      {
+                        "Ref": "Application"
+                      }
+                    ]
+                  },
+                  "efs"
+                  {
+                    "Ref": "StackId"
+                  }
+                ]
+              ]
             }
           },
           {
