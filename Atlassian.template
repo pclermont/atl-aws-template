@@ -350,6 +350,13 @@
         "pr": "Prd",
         "ua": "UAT"
       }
+    },
+    "ProductNameLowerCase": {
+      "Product": {
+        "Jira": "jira",
+        "Confluence": "confluence",
+        "Bitbucket": "bitbucket"
+      }
     }
   },
   "Resources": {
@@ -386,7 +393,27 @@
             "Fn::If": [
               "ConfluenceProduct",
               {
-                "Ref": "AWS::NoValue"
+                "Fn::Join": [
+                  "-",
+                  [
+                    {
+                      "Ref": "EnvironmentName"
+                    },
+                    {
+                      "Fn::FindInMap": [
+                        "ProductNameLowerCase",
+                        "Product",
+                        {
+                          "Ref": "AtlassianProduct"
+                        }
+                      ]
+                    },
+                    "elb",
+                    {
+                      "Ref": "stackId"
+                    }
+                  ]
+                ]
               },
               {
                 "Ref": "LoadBalancer"
@@ -428,25 +455,36 @@
           {
             "Key": "MonitoringProfile",
             "Value": {
-              "Fn::Join": [
-                "",
-                [
-                  {
-                    "Ref": "AtlassianProduct"
-                  }
-                ]
-              ]
+              "Ref": "AtlassianProduct"
             },
+            "PropagateAtLaunch": true
+          },
+          {
+            "Key": "ConsistentSnapshots",
+            "Value": "enabled",
             "PropagateAtLaunch": true
           },
           {
             "Key": "Name",
             "Value": {
               "Fn::Join": [
-                "",
+                "-",
                 [
                   {
-                    "Ref": "AWS::StackName"
+                    "Ref": "EnvironmentName"
+                  },
+                  {
+                    "Fn::FindInMap": [
+                      "ProductNameLowerCase",
+                      "Product",
+                      {
+                        "Ref": "AtlassianProduct"
+                      }
+                    ]
+                  },
+                  "cluster",
+                  {
+                    "Ref": "stackId"
                   }
                 ]
               ]
@@ -1433,27 +1471,31 @@
           {
             "Key": "MonitoringProfile",
             "Value": {
-              "Fn::Join": [
-                "",
-                [
-                  {
-                    "Ref": "AtlassianProduct"
-                  },
-                  "ELB"
-                ]
-              ]
+              "Ref": "AtlassianProduct"
             }
           },
           {
             "Key": "Name",
             "Value": {
               "Fn::Join": [
-                "",
+                "-",
                 [
                   {
-                    "Ref": "AWS::StackName"
+                    "Ref": "EnvironmentName"
                   },
-                  "ELB"
+                  {
+                    "Fn::FindInMap": [
+                      "ProductNameLowerCase",
+                      "Product",
+                      {
+                        "Ref": "AtlassianProduct"
+                      }
+                    ]
+                  },
+                  "elb",
+                  {
+                    "Ref": "stackId"
+                  }
                 ]
               ]
             }
@@ -1688,27 +1730,31 @@
           {
             "Key": "MonitoringProfile",
             "Value": {
-              "Fn::Join": [
-                "",
-                [
-                  {
-                    "Ref": "AtlassianProduct"
-                  },
-                  "ALB"
-                ]
-              ]
+              "Ref": "AtlassianProduct"
             }
           },
           {
             "Key": "Name",
             "Value": {
               "Fn::Join": [
-                "",
+                "-",
                 [
                   {
-                    "Ref": "AWS::StackName"
+                    "Ref": "EnvironmentName"
                   },
-                  "ALB"
+                  {
+                    "Fn::FindInMap": [
+                      "ProductNameLowerCase",
+                      "Product",
+                      {
+                        "Ref": "AtlassianProduct"
+                      }
+                    ]
+                  },
+                  "alb",
+                  {
+                    "Ref": "stackId"
+                  }
                 ]
               ]
             }
@@ -1812,10 +1858,6 @@
         ],
         "Tags": [
           {
-            "Key": "Name",
-            "Value": "MainTargetGroup"
-          },
-          {
             "Key": "Cluster",
             "Value": {
               "Ref": "AWS::StackName"
@@ -1842,27 +1884,30 @@
           {
             "Key": "MonitoringProfile",
             "Value": {
-              "Fn::Join": [
-                "",
-                [
-                  {
-                    "Ref": "AtlassianProduct"
-                  },
-                  "ALB"
-                ]
-              ]
+              "Ref": "AtlassianProduct"
             }
           },
           {
             "Key": "Name",
             "Value": {
               "Fn::Join": [
-                "",
+                "-",
                 [
                   {
-                    "Ref": "AWS::StackName"
+                    "Ref": "EnvironmentName"
                   },
-                  "ELB"
+                  {
+                    "Fn::FindInMap": [
+                      "ProductNameLowerCase",
+                      "Product",
+                      {
+                        "Ref": "AtlassianProduct"
+                      }
+                    ]
+                  },
+                  {
+                    "Ref": "stackId"
+                  }
                 ]
               ]
             }
