@@ -160,7 +160,7 @@
                       }
                     ]
                   },
-                  "efs"
+                  "efs",
                   {
                     "Ref": "StackId"
                   }
