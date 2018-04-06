@@ -393,27 +393,7 @@
             "Fn::If": [
               "ConfluenceProduct",
               {
-                "Fn::Join": [
-                  "-",
-                  [
-                    {
-                      "Ref": "EnvironmentName"
-                    },
-                    {
-                      "Fn::FindInMap": [
-                        "ProductNameLowerCase",
-                        "Product",
-                        {
-                          "Ref": "AtlassianProduct"
-                        }
-                      ]
-                    },
-                    "elb",
-                    {
-                      "Ref": "stackId"
-                    }
-                  ]
-                ]
+                "Ref": "AWS::NoValue"
               },
               {
                 "Ref": "LoadBalancer"
