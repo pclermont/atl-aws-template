@@ -462,9 +462,8 @@
                       }
                     ]
                   },
-                  "cluster",
                   {
-                    "Ref": "stackId"
+                    "Ref": "StackId"
                   }
                 ]
               ]
@@ -1474,7 +1473,7 @@
                   },
                   "elb",
                   {
-                    "Ref": "stackId"
+                    "Ref": "StackId"
                   }
                 ]
               ]
@@ -1733,7 +1732,7 @@
                   },
                   "alb",
                   {
-                    "Ref": "stackId"
+                    "Ref": "StackId"
                   }
                 ]
               ]
@@ -1886,7 +1885,7 @@
                     ]
                   },
                   {
-                    "Ref": "stackId"
+                    "Ref": "StackId"
                   }
                 ]
               ]
