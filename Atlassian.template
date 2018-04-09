@@ -316,6 +316,14 @@
         "Confluence"
       ]
     },
+    "BitbucketProduct": {
+      "Fn::Equals":[
+        {
+          "Ref": "AtlassianProduct"
+        },
+        "Bitbucket"
+      ]
+    },
     "NotJiraProduct": {
       "Fn::Not": [
         {
@@ -337,6 +345,16 @@
             },
             "Confluence"
           ]
+        }
+      ]
+    },
+    "UseAlb": {
+      "Fn::Or": [
+        {
+          "Condition": "ConfluenceProduct"
+        },
+        {
+          "Condition": "JiraProduct"            
         }
       ]
     }
@@ -378,12 +396,12 @@
         "TargetGroupARNs": [
           {
             "Fn::If": [
-              "ConfluenceProduct",
-              {
-                "Ref": "MainTargetGroup"
-              },
+              "BitbucketProduct",
               {
                 "Ref": "AWS::NoValue"
+              },
+              {
+                "Ref": "MainTargetGroup"
               }
             ]
           }
@@ -391,7 +409,7 @@
         "LoadBalancerNames": [
           {
             "Fn::If": [
-              "ConfluenceProduct",
+              "BitbucketProduct",
               {
                 "Ref": "AWS::NoValue"
               },
@@ -829,16 +847,16 @@
                                 },
                                 {
                                   "Fn::If": [
-                                    "ConfluenceProduct",
+                                    "BitbucketProduct",
                                     {
                                       "Fn::GetAtt": [
-                                        "ConfluenceLoadBalancer",
+                                        "LoadBalancer",
                                         "DNSName"
                                       ]
                                     },
                                     {
                                       "Fn::GetAtt": [
-                                        "LoadBalancer",
+                                        "MainLoadBalancer",
                                         "DNSName"
                                       ]
                                     }
@@ -1113,16 +1131,16 @@
                                 },
                                 {
                                   "Fn::If": [
-                                    "ConfluenceProduct",
+                                    "BitbucketProduct",
                                     {
                                       "Fn::GetAtt": [
-                                        "ConfluenceLoadBalancer",
+                                        "LoadBalancer",
                                         "DNSName"
                                       ]
                                     },
                                     {
                                       "Fn::GetAtt": [
-                                        "LoadBalancer",
+                                        "MainLoadBalancer",
                                         "DNSName"
                                       ]
                                     }
@@ -1349,7 +1367,7 @@
     },
     "LoadBalancer": {
       "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
-      "Condition": "NotConfluenceProduct",
+      "Condition": "BitbucketProduct",
       "Properties": {
         "AppCookieStickinessPolicy": [
           {
@@ -1668,9 +1686,9 @@
         }
       }
     },
-    "ConfluenceLoadBalancer": {
+    "MainLoadBalancer": {
       "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
-      "Condition": "ConfluenceProduct",
+      "Condition": "UseAlb",
       "Properties": {
         "LoadBalancerAttributes": [
           {
@@ -1747,9 +1765,9 @@
         ]
       }
     },
-    "ConfluenceLoadBalancerListener": {
+    "MainLoadBalancerListener": {
       "Type": "AWS::ElasticLoadBalancingV2::Listener",
-      "Condition": "ConfluenceProduct",
+      "Condition": "UseAlb",
       "Properties": {
         "Certificates": [
           {
@@ -1788,7 +1806,7 @@
           }
         ],
         "LoadBalancerArn": {
-          "Ref": "ConfluenceLoadBalancer"
+          "Ref": "MainLoadBalancer"
         },
         "Port": {
           "Fn::If": [
@@ -1808,8 +1826,8 @@
     },
     "MainTargetGroup": {
       "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
-      "Condition": "ConfluenceProduct",
-      "DependsOn": "ConfluenceLoadBalancer",
+      "Condition": "UseAlb",
+      "DependsOn": "MainLoadBalancer",
       "Properties": {
         "Port": "8080",
         "Protocol": "HTTP",
