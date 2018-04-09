@@ -351,10 +351,20 @@
     "UseAlb": {
       "Fn::Or": [
         {
-          "Condition": "ConfluenceProduct"
+          "Fn::Equals": [
+            {
+              "Ref": "AtlassianProduct"
+            },
+            "Jira"
+          ]
         },
         {
-          "Condition": "JiraProduct"            
+          "Fn::Equals": [
+            {
+              "Ref": "AtlassianProduct"
+            },
+            "Confluence"
+          ]         
         }
       ]
     }
