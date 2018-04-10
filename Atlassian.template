@@ -348,23 +348,15 @@
         }
       ]
     },
-    "UseAlb": {
-      "Fn::Or": [
+    "NotBitbucketProduct": {
+      "Fn::Not": [
         {
           "Fn::Equals": [
             {
               "Ref": "AtlassianProduct"
             },
-            "Jira"
+            "Bitbucket"
           ]
-        },
-        {
-          "Fn::Equals": [
-            {
-              "Ref": "AtlassianProduct"
-            },
-            "Confluence"
-          ]         
         }
       ]
     }
@@ -531,6 +523,7 @@
                     "\n",
                     [
                       "ATL_LOG=/var/log/atl.log",
+                      "ATL_STANDALONE_MODE=true",
                       "ATL_APP_DATA_MOUNT_ENABLED=true",
                       "ATL_APP_DATA_BLOCK_DEVICE=/dev/xvdf",
                       "ATL_APP_DATA_MOUNT=\"/media/atl\"",
@@ -1698,7 +1691,7 @@
     },
     "MainLoadBalancer": {
       "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
-      "Condition": "UseAlb",
+      "Condition": "NotBitbucketProduct",
       "Properties": {
         "LoadBalancerAttributes": [
           {
@@ -1777,7 +1770,7 @@
     },
     "MainLoadBalancerListener": {
       "Type": "AWS::ElasticLoadBalancingV2::Listener",
-      "Condition": "UseAlb",
+      "Condition": "NotBitbucketProduct",
       "Properties": {
         "Certificates": [
           {
@@ -1836,7 +1829,7 @@
     },
     "MainTargetGroup": {
       "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
-      "Condition": "UseAlb",
+      "Condition": "NotBitbucketProduct",
       "DependsOn": "MainLoadBalancer",
       "Properties": {
         "Port": "8080",
