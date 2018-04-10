@@ -85,7 +85,7 @@ function configureSharedHome {
         mkdir -p "${CONFLUENCE_SHARED}"
         atl_ChangeFolderOwnership "${ATL_CONFLUENCE_USER}" "${ATL_CONFLUENCE_USER}" "${CONFLUENCE_SHARED}"
         su "${ATL_CONFLUENCE_USER}" -c "ln -s \"${CONFLUENCE_SHARED}\" \"${ATL_CONFLUENCE_SHARED_HOME}\"" >> "${ATL_LOG}" 2>&1
-        if [ "" == "xtrue" ] ; then
+        if [ "x${ATL_STANDALONE_MODE}" == "xtrue" ] ; then
             rm ${CONFLUENCE_SHARED}/cluster.properties
         fi
     else
