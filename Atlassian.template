@@ -317,7 +317,7 @@
       ]
     },
     "BitbucketProduct": {
-      "Fn::Equals":[
+      "Fn::Equals": [
         {
           "Ref": "AtlassianProduct"
         },
@@ -634,11 +634,39 @@
               }
             },
             "commands": {
-              "chef": {
+              "001_hostnamectl": {
+                "command": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "hostnamectl set-hostname ",
+                      {
+                        "Ref": "EnvironmentName"
+                      },
+                      "-",
+                      {
+                        "Fn::FindInMap": [
+                          "ProductNameLowerCase",
+                          "Product",
+                          {
+                            "Ref": "AtlassianProduct"
+                          }
+                        ]
+                      },
+                      "-",
+                      {
+                        "Ref": "StackId"
+                      }
+                    ]
+                  ]
+                },
+                "ignoreErrors": "false"
+              },
+              "002_chef": {
                 "command": "chef-client -o recipe[ff_linux_base_wrapper::launch] -c /var/chef/solo.rb -z",
                 "ignoreErrors": "false"
               },
-              "001_yum_update": {
+              "008_yum_update": {
                 "command": "yum -y update",
                 "ignoreErrors": "false"
               },
