@@ -657,7 +657,7 @@
                       {
                         "Ref": "StackId"
                       },
-                      "corp.fairstone.ca"
+                      ".corp.fairstone.ca"
                     ]
                   ]
                 },
@@ -1356,6 +1356,7 @@
               "\n",
               [
                 "#!/bin/bash -xe",
+                "sed -i -e 's/xcorp/corp/g' /etc/yum.repos.d/fairstone.repo",
                 "yum update -y aws-cfn-bootstrap",
                 {
                   "Fn::Join": [
