@@ -412,11 +412,11 @@
           {
             "Fn::If": [
               "BitbucketProduct",
-              {
-                "Ref": "AWS::NoValue"
+                            {
+                "Ref": "LoadBalancer"
               },
               {
-                "Ref": "LoadBalancer"
+                "Ref": "AWS::NoValue"
               }
             ]
           }
