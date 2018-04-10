@@ -656,14 +656,15 @@
                       "-",
                       {
                         "Ref": "StackId"
-                      }
+                      },
+                      "corp.fairstone.ca"
                     ]
                   ]
                 },
                 "ignoreErrors": "false"
               },
               "002_chef": {
-                "command": "chef-client -o recipe[ff_linux_base_wrapper::launch] -c /var/chef/solo.rb -z",
+                "command": "cd /var/chef && chef-client -o recipe[ff_linux_base_wrapper::launch] -c /var/chef/solo.rb -z",
                 "ignoreErrors": "false"
               },
               "008_yum_update": {
