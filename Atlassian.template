@@ -316,6 +316,14 @@
         "Confluence"
       ]
     },
+    "BitbucketProduct": {
+      "Fn::Equals": [
+        {
+          "Ref": "AtlassianProduct"
+        },
+        "Bitbucket"
+      ]
+    },
     "NotJiraProduct": {
       "Fn::Not": [
         {
@@ -336,6 +344,18 @@
               "Ref": "AtlassianProduct"
             },
             "Confluence"
+          ]
+        }
+      ]
+    },
+    "NotBitbucketProduct": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "AtlassianProduct"
+            },
+            "Bitbucket"
           ]
         }
       ]
@@ -378,12 +398,12 @@
         "TargetGroupARNs": [
           {
             "Fn::If": [
-              "ConfluenceProduct",
-              {
-                "Ref": "MainTargetGroup"
-              },
+              "BitbucketProduct",
               {
                 "Ref": "AWS::NoValue"
+              },
+              {
+                "Ref": "MainTargetGroup"
               }
             ]
           }
@@ -391,7 +411,7 @@
         "LoadBalancerNames": [
           {
             "Fn::If": [
-              "ConfluenceProduct",
+              "BitbucketProduct",
               {
                 "Ref": "AWS::NoValue"
               },
@@ -503,6 +523,7 @@
                     "\n",
                     [
                       "ATL_LOG=/var/log/atl.log",
+                      "ATL_STANDALONE_MODE=true",
                       "ATL_APP_DATA_MOUNT_ENABLED=true",
                       "ATL_APP_DATA_BLOCK_DEVICE=/dev/xvdf",
                       "ATL_APP_DATA_MOUNT=\"/media/atl\"",
@@ -613,11 +634,39 @@
               }
             },
             "commands": {
-              "chef": {
+              "001_hostnamectl": {
+                "command": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "hostnamectl set-hostname ",
+                      {
+                        "Ref": "EnvironmentName"
+                      },
+                      "-",
+                      {
+                        "Fn::FindInMap": [
+                          "ProductNameLowerCase",
+                          "Product",
+                          {
+                            "Ref": "AtlassianProduct"
+                          }
+                        ]
+                      },
+                      "-",
+                      {
+                        "Ref": "StackId"
+                      }
+                    ]
+                  ]
+                },
+                "ignoreErrors": "false"
+              },
+              "002_chef": {
                 "command": "chef-client -o recipe[ff_linux_base_wrapper::launch] -c /var/chef/solo.rb -z",
                 "ignoreErrors": "false"
               },
-              "001_yum_update": {
+              "008_yum_update": {
                 "command": "yum -y update",
                 "ignoreErrors": "false"
               },
@@ -829,16 +878,16 @@
                                 },
                                 {
                                   "Fn::If": [
-                                    "ConfluenceProduct",
+                                    "BitbucketProduct",
                                     {
                                       "Fn::GetAtt": [
-                                        "ConfluenceLoadBalancer",
+                                        "LoadBalancer",
                                         "DNSName"
                                       ]
                                     },
                                     {
                                       "Fn::GetAtt": [
-                                        "LoadBalancer",
+                                        "MainLoadBalancer",
                                         "DNSName"
                                       ]
                                     }
@@ -1113,16 +1162,16 @@
                                 },
                                 {
                                   "Fn::If": [
-                                    "ConfluenceProduct",
+                                    "BitbucketProduct",
                                     {
                                       "Fn::GetAtt": [
-                                        "ConfluenceLoadBalancer",
+                                        "LoadBalancer",
                                         "DNSName"
                                       ]
                                     },
                                     {
                                       "Fn::GetAtt": [
-                                        "LoadBalancer",
+                                        "MainLoadBalancer",
                                         "DNSName"
                                       ]
                                     }
@@ -1349,7 +1398,7 @@
     },
     "LoadBalancer": {
       "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
-      "Condition": "NotConfluenceProduct",
+      "Condition": "BitbucketProduct",
       "Properties": {
         "AppCookieStickinessPolicy": [
           {
@@ -1668,9 +1717,9 @@
         }
       }
     },
-    "ConfluenceLoadBalancer": {
+    "MainLoadBalancer": {
       "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
-      "Condition": "ConfluenceProduct",
+      "Condition": "NotBitbucketProduct",
       "Properties": {
         "LoadBalancerAttributes": [
           {
@@ -1747,9 +1796,9 @@
         ]
       }
     },
-    "ConfluenceLoadBalancerListener": {
+    "MainLoadBalancerListener": {
       "Type": "AWS::ElasticLoadBalancingV2::Listener",
-      "Condition": "ConfluenceProduct",
+      "Condition": "NotBitbucketProduct",
       "Properties": {
         "Certificates": [
           {
@@ -1788,7 +1837,7 @@
           }
         ],
         "LoadBalancerArn": {
-          "Ref": "ConfluenceLoadBalancer"
+          "Ref": "MainLoadBalancer"
         },
         "Port": {
           "Fn::If": [
@@ -1808,8 +1857,8 @@
     },
     "MainTargetGroup": {
       "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
-      "Condition": "ConfluenceProduct",
-      "DependsOn": "ConfluenceLoadBalancer",
+      "Condition": "NotBitbucketProduct",
+      "DependsOn": "MainLoadBalancer",
       "Properties": {
         "Port": "8080",
         "Protocol": "HTTP",
